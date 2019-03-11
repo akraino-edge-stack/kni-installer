@@ -18,8 +18,8 @@ import (
 	"io/ioutil"
 	"os"
 
+	"gerrit.akraino.org/kni/installer/pkg/generator"
 	"github.com/spf13/cobra"
-	"github.com/yrobla/kni-edge-installer/pkg/generator"
 )
 
 // generateCmd represents the generate command

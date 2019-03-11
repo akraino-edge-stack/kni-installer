@@ -14,7 +14,7 @@
 
 package main
 
-import "github.com/yrobla/kni-edge-installer/cmd"
+import "gerrit.akraino.org/kni/installer/cmd"
 
 func main() {
 	cmd.Execute()
