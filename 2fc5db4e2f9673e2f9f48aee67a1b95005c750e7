@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e67c15f4_e417add2",
+        "filename": "pkg/generator/generator.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 169
+      },
+      "writtenOn": "2019-03-11T15:03:32Z",
+      "side": 1,
+      "message": "This type assertion will cause a panic if it doesn\u0027t succeed.  It\u0027s generally better to check for the conversion\u0027s success and fail gracefully, such as:\n\nvar ok\nvar someVariable\n\nif someVariable, ok \u003d parsedSettings[\"some_key\"]; !ok {\n    // error message\n}",
+      "revId": "2fc5db4e2f9673e2f9f48aee67a1b95005c750e7",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
+    }
+  ]
+}
