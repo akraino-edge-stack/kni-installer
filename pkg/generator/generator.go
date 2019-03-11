@@ -151,14 +151,24 @@ func (g Generator) GenerateInstallConfig() {
 	}
 
 	// Prepare the vars to be executed in the template
-	var settings = map[string]string{
-		"baseDomain":          parsedSettings["baseDomain"].(string),
-		"clusterName":         parsedSettings["clusterName"].(string),
-		"clusterCIDR":         parsedSettings["clusterCIDR"].(string),
-		"clusterSubnetLength": fmt.Sprintf("%d", parsedSettings["clusterSubnetLength"].(int)),
-		"machineCIDR":         parsedSettings["machineCIDR"].(string),
-		"serviceCIDR":         parsedSettings["serviceCIDR"].(string),
-		"SDNType":             parsedSettings["SDNType"].(string),
+	var settings = make(map[string]string)
+	var mandatorySettings = map[string]string{
+		"baseDomain":          "string",
+		"clusterName":         "string",
+		"clusterCIDR":         "string",
+		"clusterSubnetLength": "int",
+		"machineCIDR":         "string",
+		"serviceCIDR":         "string",
+		"SDNType":             "string",
+	}
+	for key, value := range mandatorySettings {
+		if _, ok := parsedSettings[key]; ok {
+			if value == "int" {
+				settings[key] = fmt.Sprintf("%d", parsedSettings[key].(int))
+			} else {
+				settings[key] = parsedSettings[key].(string)
+			}
+		}
 	}
 	// Settings depending on provider
 	providerSettings := [2]string{"libvirtURI", "AWSRegion"}
