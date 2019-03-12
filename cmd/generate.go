@@ -34,6 +34,7 @@ var generateCmd = &cobra.Command{
 		basePath, _ := cmd.Flags().GetString("base_path")
 		installerPath, _ := cmd.Flags().GetString("installer_path")
 		secretsRepository, _ := cmd.Flags().GetString("secrets_repository")
+		siteRepository, _ := cmd.Flags().GetString("site_repository")
 		settingsPath, _ := cmd.Flags().GetString("settings_path")
 
 		// Check if build path exists, create if not
@@ -48,7 +49,7 @@ var generateCmd = &cobra.Command{
 		}
 
 		// start generation process
-		g := generator.New(baseRepo, basePath, installerPath, secretsRepository, settingsPath, buildPath)
+		g := generator.New(baseRepo, basePath, installerPath, secretsRepository, siteRepository, settingsPath, buildPath)
 		g.GenerateManifests()
 	},
 }
@@ -65,6 +66,9 @@ func init() {
 
 	generateCmd.Flags().StringP("secrets_repository", "", "", "Path to repository that contains secrets")
 	generateCmd.MarkFlagRequired("secrets_repository")
-	generateCmd.Flags().StringP("settings_path", "", "", "Path to repository that contains settings.yaml with definitions for the site")
+
+	generateCmd.Flags().StringP("site_repository", "", "", "Url for the specific site github repository")
+	generateCmd.MarkFlagRequired("site_repository")
+	generateCmd.Flags().StringP("settings_path", "", "", "Path to settings.yaml with specific config for the site")
 	generateCmd.MarkFlagRequired("settings_path")
 }

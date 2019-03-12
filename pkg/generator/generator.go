@@ -23,14 +23,15 @@ type Generator struct {
 	basePath      string
 	installerPath string
 	secretsRepo   string
+	siteRepo      string
 	settingsPath  string
 	buildPath     string
 	secrets       map[string]string
 }
 
 // New constructor for the generator
-func New(baseRepo string, basePath string, installerPath string, secretsRepo string, settingsPath string, buildPath string) Generator {
-	g := Generator{baseRepo, basePath, installerPath, secretsRepo, settingsPath, buildPath, make(map[string]string)}
+func New(baseRepo string, basePath string, installerPath string, secretsRepo string, siteRepo string, settingsPath string, buildPath string) Generator {
+	g := Generator{baseRepo, basePath, installerPath, secretsRepo, siteRepo, settingsPath, buildPath, make(map[string]string)}
 	return g
 }
 
@@ -64,16 +65,6 @@ func (g Generator) DownloadArtifacts() {
 	}
 	os.Chmod(secretsPath, 0700)
 
-	// Download the settings.yaml and place it on build directory
-	log.Println("Download settings file")
-	settingsBuildPath := fmt.Sprintf("%s/settings.yaml", g.buildPath)
-	client = &getter.Client{Src: g.settingsPath, Dst: settingsBuildPath, Mode: getter.ClientModeFile}
-	err = client.Get()
-	if err != nil {
-		log.Fatal(fmt.Sprintf("Error downloading settings.yaml: %s", err))
-		os.Exit(1)
-	}
-
 	// Clone the base repository with base manifests
 	log.Println("Cloning the base repository with base manifests")
 	baseBuildPath := fmt.Sprintf("%s/base_manifests", g.buildPath)
@@ -85,6 +76,14 @@ func (g Generator) DownloadArtifacts() {
 		os.Exit(1)
 	}
 
+	// Clone the site repository with settings.yaml
+	log.Println("Cloning the site repository with settings")
+	siteBuildPath := fmt.Sprintf("%s/site", g.buildPath)
+	client = &getter.Client{Src: g.siteRepo, Dst: siteBuildPath, Mode: getter.ClientModeAny}
+	err = client.Get()
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error cloning site repository: %s", err))
+	}
 }
 
 // ReadSecretFiles will traverse secrets directory and read content
@@ -126,7 +125,8 @@ func (g Generator) GenerateInstallConfig() {
 	}
 
 	// parse settings file
-	yamlContent, err := ioutil.ReadFile(fmt.Sprintf("%s/settings.yaml", g.buildPath))
+	settingsPath := fmt.Sprintf("%s/site/%s", g.buildPath, g.settingsPath)
+	yamlContent, err := ioutil.ReadFile(settingsPath)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Error reading settings file: %s", err))
 		os.Exit(1)

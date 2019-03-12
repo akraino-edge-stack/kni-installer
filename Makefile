@@ -27,7 +27,7 @@ build:
 
 deploy:
 	@echo "Launching cluster deployment bin/$(GONAME)"
-	@./bin/$(GONAME) generate --installer_path $(INSTALLER_PATH) --build_path $(BUILDDIR) --base_repository $(BASE_REPO) --base_path $(BASE_PATH) --secrets_repository $(CREDENTIALS) --settings_path $(SETTINGS)
+	@./bin/$(GONAME) generate --installer_path $(INSTALLER_PATH) --build_path $(BUILDDIR) --base_repository $(BASE_REPO) --base_path $(BASE_PATH) --secrets_repository $(CREDENTIALS) --site_repository $(SITE_REPO) --settings_path $(SETTINGS_PATH)
 
 clean:
 	@echo "Destroying previous cluster"
