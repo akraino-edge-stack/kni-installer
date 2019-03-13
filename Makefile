@@ -38,6 +38,6 @@ help:
 	@echo "  binary to generate a new openshift-install binary"
 	@echo "  build to produce the installer binary"
 	@echo "  clean to destroy a previously created cluster and remove build contents"
-	@echo "  deploy CREDENTIALS=<github_secret_repo> SETTINGS=<path_to_site_settings> BASE_REPO=<github_manifests_repo> BASE_PATH=<subpath_on_manifests_repo>"
+	@echo "  deploy CREDENTIALS=<github_secret_repo> BASE_REPO=<github_manifests_repo> BASE_PATH=<subpath_on_manifests_repo> SITE_REPO=<github_site_repo> SETTINGS_PATH=<subpath_on_site_repo>
 
 .PHONY: build get install run watch start stop restart clean

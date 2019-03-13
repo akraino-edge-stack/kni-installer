@@ -45,9 +45,13 @@ This is the repository where the default manifest templates are stored. There is
 
 Once the manifests repository is being cloned, it will contain several folders with all the specific manifests for the blueprint. In order to choose a provider and footprint, the BASE_PATH needs to be specific. Current values are: libvirt/1-node, libvirt/3-node, aws/1-node, aws/3-node
 
-**SETTINGS: Specific site settings**
+**SITE_REPO: Repository for the site manifests**
 
-This is going to contain the settings that will be different per deployment. Depending on the provider it will contain some specific settings. A sample settings file can be seen at: [https://raw.githubusercontent.com/redhat-nfvpe/kni-edge-base/master/libvirt/sample_settings.yaml](https://raw.githubusercontent.com/redhat-nfvpe/kni-edge-base/master/libvirt/sample_settings.yaml ) . But different settings per site can be created on different git repos.
+Each site can have different manifests and settings. This needs to be a per-site repository where individual settings need to be stored, and where the generated manifests per site will be stored (TODO).
+
+**SETTINGS_PATH: Specific site settings**
+
+Once the site repository is being cloned, it needs to contain a settings.yaml file with the per-site settings. This needs to be the path inside the SITE_REPO where the settings.yaml is contained. A sample settings file can be seen at [https://gerrit.akraino.org/r/gitweb?p=kni/templates.git;a=blob_plain;f=libvirt/sample_settings.yaml;hb=refs/heads/master](https://gerrit.akraino.org/r/gitweb?p=kni/templates.git;a=blob_plain;f=libvirt/sample_settings.yaml;hb=refs/heads/master) for libvirt, and at [https://gerrit.akraino.org/r/gitweb?p=kni/templates.git;a=blob_plain;f=aws/sample_settings.yaml;hb=refs/heads/master](https://gerrit.akraino.org/r/gitweb?p=kni/templates.git;a=blob_plain;f=aws/sample_settings.yaml;hb=refs/heads/master) for AWS. Different settings file need to be created per site.
 
 ## How to deploy for AWS
 
@@ -57,8 +61,7 @@ the AWS account properly:
 
 There are two different footprints for AWS: 1 master/1 worker, and 3 masters/3 workers. Makefile needs to be called with:
 
-    make deploy CREDENTIALS=git@github.com:repo_user/repo_name.git SETTINGS=https://raw.githubusercontent.com/redhat-nfvpe/kni-edge-base/master/aws/sample_settings.yaml BASE_REPO=github.com/redhat-nfvpe/kni-edge-base.git BASE_PATH=[aws/3-node|aws/1-node]
-
+    make deploy CREDENTIALS=git@github.com:<git_user>/akraino-secrets.git SITE_REPO=git::https://gerrit.akraino.org/r/kni/templates.git SETTINGS_PATH=aws/sample_settings.yaml BASE_REPO=git::https://gerrit.akraino.org/r/kni/templates.git BASE_PATH=[aws/1-node|aws/3-node]
 
 The file will look like:
 
@@ -87,12 +90,11 @@ First of all, we need to prepare a host in order to configure libvirt, iptables,
 
 [https://github.com/openshift/installer/blob/master/docs/dev/libvirt-howto.md](https://github.com/openshift/installer/blob/master/docs/dev/libvirt-howto.md)
 
-Unfortunately, Libvirt is only for development purposes from the OpenShift perspective, so the binary is not compiled with the libvirt bits by default. The user will have to compile it by his/her own version with libvirt enabled.
-The link pasted above, also contains the instructions to compile the installer with the correct tags. Once it is compiled correctly, you will have to point to the binary from the execution command (make).
+Unfortunately, Libvirt is only for development purposes from the OpenShift perspective, so the binary is not compiled with the libvirt bits by default. The user will have to compile it by his/her own version with libvirt enabled. In order to build a binary, please look at section `Building and consuming your own installer`.
 
 There are two different footprints for libvirt: 1 master/1 worker, and 3 masters/3 workers. Makefile needs to be called with:
 
-    make deploy CREDENTIALS=git@github.com:repo_user/repo_name.git SETTINGS=https://raw.githubusercontent.com/redhat-nfvpe/kni-edge-base/master/libvirt/sample_settings.yaml BASE_REPO=github.com/redhat-nfvpe/kni-edge-base.git BASE_PATH=[libvirt/3-node|libvirt/1-node] INSTALLER_PATH=file:///${GOPATH}/bin/openshift-install
+    make deploy CREDENTIALS=git@github.com:<git_user>/akraino-secrets.git SITE_REPO=git::https://gerrit.akraino.org/r/kni/templates.git SETTINGS_PATH=libvirt/sample_settings.yaml BASE_REPO=git::https://gerrit.akraino.org/r/kni/templates.git BASE_PATH=[libvirt/1-node|libvirt/3-node] INSTALLER_PATH=file:///${GOPATH}/bin/openshift-install
 
 A sample settings.yaml file has been created specifically for Libvirt targets. It needs to look like:
 
@@ -136,10 +138,13 @@ In order to destroy the running cluster, and clean up environment, just use
 ## Building and consuming your own installer
 
 The openshift-installer binaries are published on [https://github.com/openshift/installer/releases](https://github.com/openshift/installer/releases).
-For faster deploy, you can grab the installer from here. However, there may be situations where you need to compile your own installer (such as the case of libvirt), or you need a newer version.
-In that case, you can build it following the instructions on [https://github.com/openshift/installer](https://github.com/openshift/installer)
+For faster deploy, you can grab the installer from the upper link. However, there may be situations where you need to compile your own installer (such as the case of libvirt), or you need a newer version.
+You can build the binary following the instructions on [https://github.com/openshift/installer](https://github.com/openshift/installer) , or you can use the provided target from our project.
+The binary can be produced with the following command:
 
-Then you can export the path to the new installer before running make:
+    make binary
+
+It accepts an additional INSTALLER_GIT_TAG parameter that allows to specify the installer version that you want to build. Once built, the `openshift-install` is placed in the build directory. This binary can be copied into $GOPATH/bin for easier use. Once generated, the new installer can be used with an env var:
 
     export INSTALLER_PATH=http://<url_to_binary>/openshift-install
 
