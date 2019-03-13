@@ -163,3 +163,11 @@ can be modified with the desired values. After that this code can be executed to
 generate a new cluster based on the modified manifests:
 
     /path/to/openshift-install create cluster
+
+## How to create images (WIP)
+
+For the installer to work on baremetal, it needs a different type of images: installer image (kernel, ramdisk), and the deployment image (raw). To generate the images please execute:
+
+    make images
+
+And this will leave the needed images inside your build directory. Those can be used later for a baremetal deploy.
