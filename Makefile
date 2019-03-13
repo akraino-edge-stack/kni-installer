@@ -25,13 +25,17 @@ build:
 	@echo "Building kni-edge-installer with $(GOPATH) to ./bin"
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -o bin/$(GONAME) $(GOFILES)
 
+clean:
+	@echo "Destroying previous cluster"
+	@./bin/$(GONAME) clean --build_path $(BUILDDIR)
+
 deploy:
 	@echo "Launching cluster deployment bin/$(GONAME)"
 	@./bin/$(GONAME) generate --installer_path $(INSTALLER_PATH) --build_path $(BUILDDIR) --base_repository $(BASE_REPO) --base_path $(BASE_PATH) --secrets_repository $(CREDENTIALS) --site_repository $(SITE_REPO) --settings_path $(SETTINGS_PATH)
 
-clean:
-	@echo "Destroying previous cluster"
-	@./bin/$(GONAME) clean --build_path $(BUILDDIR)
+images:
+	@echo "Launching image generation"
+	@./bin/$(GONAME) images --build_path $(BUILDDIR)
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
