@@ -36,6 +36,7 @@ var generateCmd = &cobra.Command{
 		secretsRepository, _ := cmd.Flags().GetString("secrets_repository")
 		siteRepository, _ := cmd.Flags().GetString("site_repository")
 		settingsPath, _ := cmd.Flags().GetString("settings_path")
+		masterMemoryMB, _ := cmd.Flags().GetString("master_memory_mb")
 
 		// Check if build path exists, create if not
 		buildPath, _ := cmd.Flags().GetString("build_path")
@@ -49,7 +50,7 @@ var generateCmd = &cobra.Command{
 		}
 
 		// start generation process
-		g := generator.New(baseRepo, basePath, installerPath, secretsRepository, siteRepository, settingsPath, buildPath)
+		g := generator.New(baseRepo, basePath, installerPath, secretsRepository, siteRepository, settingsPath, buildPath, masterMemoryMB)
 		g.GenerateManifests()
 	},
 }
@@ -71,4 +72,7 @@ func init() {
 	generateCmd.MarkFlagRequired("site_repository")
 	generateCmd.Flags().StringP("settings_path", "", "", "Path to settings.yaml with specific config for the site")
 	generateCmd.MarkFlagRequired("settings_path")
+
+	generateCmd.Flags().StringP("master_memory_mb", "", "", "MB of memory to use for master node (libvirt)")
+
 }

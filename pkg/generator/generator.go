@@ -19,19 +19,20 @@ import (
 
 // Generator : Structure that contains the settings needed for generation
 type Generator struct {
-	baseRepo      string
-	basePath      string
-	installerPath string
-	secretsRepo   string
-	siteRepo      string
-	settingsPath  string
-	buildPath     string
-	secrets       map[string]string
+	baseRepo       string
+	basePath       string
+	installerPath  string
+	secretsRepo    string
+	siteRepo       string
+	settingsPath   string
+	buildPath      string
+	masterMemoryMB string
+	secrets        map[string]string
 }
 
 // New constructor for the generator
-func New(baseRepo string, basePath string, installerPath string, secretsRepo string, siteRepo string, settingsPath string, buildPath string) Generator {
-	g := Generator{baseRepo, basePath, installerPath, secretsRepo, siteRepo, settingsPath, buildPath, make(map[string]string)}
+func New(baseRepo string, basePath string, installerPath string, secretsRepo string, siteRepo string, settingsPath string, buildPath string, masterMemoryMB string) Generator {
+	g := Generator{baseRepo, basePath, installerPath, secretsRepo, siteRepo, settingsPath, buildPath, masterMemoryMB, make(map[string]string)}
 	return g
 }
 
@@ -238,6 +239,11 @@ func (g Generator) DeployCluster() {
 	log.Println("Deploying cluster")
 	cmd := exec.Command("./openshift-install", "create", "cluster")
 	cmd.Dir = g.buildPath
+
+	if len(g.masterMemoryMB) > 0 {
+		cmd.Env = os.Environ()
+		cmd.Env = append(cmd.Env, fmt.Sprintf("TF_VAR_libvirt_master_memory=%s", g.masterMemoryMB))
+	}
 
 	var stdBuffer bytes.Buffer
 	mw := io.MultiWriter(os.Stdout, &stdBuffer)
