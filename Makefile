@@ -15,6 +15,10 @@ ifndef INSTALLER_GIT_TAG
 override INSTALLER_GIT_TAG = "v0.14.0"
 endif
 
+ifndef MASTER_MEMORY_MB
+override MASTER_MEMORY_MB = "11192"
+endif
+
 all: watch
 
 binary:
