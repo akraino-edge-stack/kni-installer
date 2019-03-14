@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "28272574_e2b08c39",
+        "filename": "cmd/images.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 169
+      },
+      "writtenOn": "2019-03-14T10:57:54Z",
+      "side": 1,
+      "message": "Might want to check if either:\n\n1. These keys exist\n2. The value is an empty string",
+      "revId": "05bf917719ff22290ac06e7a5992e7b1eebb9cb9",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "01f7ca01_3c4fc4c9",
+        "filename": "cmd/images.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 169
+      },
+      "writtenOn": "2019-03-14T10:57:54Z",
+      "side": 1,
+      "message": "If images or images[\"path\"] is nil, this will panic.  Probably want to check for:\n\n1. Whether images is nil\n2. Whether images[\"path\"] exists\n3. Whether the type assertion would succeed",
+      "revId": "05bf917719ff22290ac06e7a5992e7b1eebb9cb9",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
+    }
+  ]
+}
