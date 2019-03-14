@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "41eb318b_baa95199",
+        "filename": "cmd/images.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 169
+      },
+      "writtenOn": "2019-03-14T13:53:31Z",
+      "side": 1,
+      "message": "Says just for Maipo, but references ootpa in the if-statement below.  Not sure if this was intentional.",
+      "range": {
+        "startLine": 201,
+        "startChar": 2,
+        "endLine": 201,
+        "endChar": 19
+      },
+      "revId": "948b0da8fa27b1c5e1a93741e07673391076ffa4",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
+    }
+  ]
+}
