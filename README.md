@@ -28,7 +28,8 @@ you will need to use the following syntax:
 
 This repository is needed to store private credentials. It is recommended that
 you store those credentials on a private repo where only allowed people have
-access. Each setting is stored in individual files in the repository:
+access, where access to the repositories can be controlled by SSH keys.
+Each setting is stored in individual files in the repository:
 
 - ssh-pub-key           # public key to be used for SSH access into the nodes
 - coreos-pull-secret    # place the file that you created before
@@ -36,6 +37,11 @@ access. Each setting is stored in individual files in the repository:
 - aws-secret-access-key # just for AWS deploy, secret for the key id
 
 The right path to clone a private repo is: git@github.com:repo_user/repo_name.git
+
+You also can use a local directory to store secrets in local deployments.
+You should create a directory with a known path, and your directory shall contain the individual files listed before. In that case no SSH key is needed. You can reference you local secrets repo by:
+
+    CREDENTIALS=file://<path_to_secrets_repo>
 
 **BASE_REPO: Repository for the base manifests**
 
