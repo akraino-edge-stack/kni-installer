@@ -53,11 +53,16 @@ func (g Generator) DownloadArtifacts() {
 	log.Println("Download secrets repo")
 	secretsPath := fmt.Sprintf("%s/secrets", g.buildPath)
 
-	// Retrieve private key and b64encode it
-	rsaPrivateLocation := fmt.Sprintf("%s/.ssh/id_rsa", os.Getenv("HOME"))
-	priv, _ := ioutil.ReadFile(rsaPrivateLocation)
-	sEnc := base64.StdEncoding.EncodeToString(priv)
-	finalURL := fmt.Sprintf("%s?sshkey=%s", g.secretsRepo, sEnc)
+	// Retrieve private key and b64encode it, if secrets is not local
+	finalURL := ""
+	if !strings.HasPrefix(g.secretsRepo, "file://") {
+		rsaPrivateLocation := fmt.Sprintf("%s/.ssh/id_rsa", os.Getenv("HOME"))
+		priv, _ := ioutil.ReadFile(rsaPrivateLocation)
+		sEnc := base64.StdEncoding.EncodeToString(priv)
+		finalURL = fmt.Sprintf("%s?sshkey=%s", g.secretsRepo, sEnc)
+	} else {
+		finalURL = g.secretsRepo
+	}
 	client = &getter.Client{Src: finalURL, Dst: secretsPath, Mode: getter.ClientModeAny}
 	err = client.Get()
 	if err != nil {
@@ -69,7 +74,6 @@ func (g Generator) DownloadArtifacts() {
 	// Clone the base repository with base manifests
 	log.Println("Cloning the base repository with base manifests")
 	baseBuildPath := fmt.Sprintf("%s/base_manifests", g.buildPath)
-	log.Println(g.basePath)
 	client = &getter.Client{Src: g.baseRepo, Dst: baseBuildPath, Mode: getter.ClientModeAny}
 	err = client.Get()
 	if err != nil {
@@ -142,7 +146,17 @@ func (g Generator) GenerateInstallConfig() {
 	parsedSettings := (*siteSettings)["settings"]
 
 	// Read secrets
-	err = filepath.Walk(fmt.Sprintf("%s/secrets", g.buildPath), g.ReadSecretFiles)
+	secretsPath := fmt.Sprintf("%s/secrets", g.buildPath)
+	ln, err := filepath.EvalSymlinks(secretsPath)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error evaluating symlinks: %s", err))
+		os.Exit(1)
+	}
+	if len(ln) > 0 {
+		// we need to traverse that instead of the given path
+		secretsPath = ln
+	}
+	err = filepath.Walk(secretsPath, g.ReadSecretFiles)
 
 	// Prepare the final file to write the template
 	f, err := os.Create(fmt.Sprintf("%s/install-config.yaml", g.buildPath))
