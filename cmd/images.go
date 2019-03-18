@@ -16,15 +16,33 @@ package cmd
 
 import (
 	"bytes"
+	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/spf13/cobra"
 )
+
+type metadata struct {
+	AMIs []struct {
+		HVM  string `json:"hvm"`
+		Name string `json:"name"`
+	} `json:"amis"`
+	Images struct {
+		QEMU struct {
+			Path   string `json:"path"`
+			SHA256 string `json:"sha256"`
+		} `json:"qemu"`
+	} `json:"images"`
+	OSTreeVersion string `json:"ostree-version"`
+}
 
 // UmountDirectory will umount the ISO directory
 func UmountDirectory(mountPath string) {
@@ -138,6 +156,119 @@ coreos-assembler buildextend-installer
 
 }
 
+// GenerateDeploymentImage will download latest qcow2, convert to raw and compress
+func GenerateDeploymentImage(buildPath string, releasesURL string, version string) {
+	// first download the json file
+	log.Println("Checking the latest builds")
+	jsonURL := fmt.Sprintf("%s/%s/builds.json", releasesURL, version)
+
+	req, err := http.NewRequest("GET", jsonURL, nil)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error downloading builds metadata: %s", err))
+		os.Exit(1)
+	}
+	client := &http.Client{}
+
+	ctx, cancel := context.WithTimeout(context.TODO(), 30*time.Second)
+	defer cancel()
+	resp, err := client.Do(req.WithContext(ctx))
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error downloading builds metadata: %s", err))
+		os.Exit(1)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Fatal(fmt.Sprintf("Incorrect HTTP response: %s", resp.Status))
+		os.Exit(1)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Failed to read HTTP response: %s", err))
+		os.Exit(1)
+	}
+
+	var builds struct {
+		Builds []string `json:"builds"`
+	}
+	if err := json.Unmarshal(body, &builds); err != nil {
+		log.Fatal(fmt.Sprintf("Failed to parse HTTP response: %s", err))
+		os.Exit(1)
+	}
+
+	if len(builds.Builds) == 0 {
+		log.Fatal("No builds found")
+		os.Exit(1)
+	}
+
+	finalBuild := builds.Builds[0]
+
+	// now retrieve the image path for this build
+	url := fmt.Sprintf("%s/%s/%s/meta.json", releasesURL, version, finalBuild)
+	log.Println(fmt.Sprintf("Checking RHCOS metadata from %s", url))
+	req, err = http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error fetching metadata: %s", err))
+		os.Exit(1)
+	}
+
+	client = &http.Client{}
+	resp, err = client.Do(req.WithContext(ctx))
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error fetching metadata: %s", err))
+		os.Exit(1)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Fatal(fmt.Sprintf("Incorrect HTTP response: %s", resp.Status))
+		os.Exit(1)
+	}
+
+	body, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Failed to read HTTP response: %s", err))
+		os.Exit(1)
+	}
+
+	var meta metadata
+	if err := json.Unmarshal(body, &meta); err != nil {
+		log.Fatal(fmt.Sprintf("Failed to parse HTTP response: %s", err))
+		os.Exit(1)
+	}
+
+	finalQcow2 := fmt.Sprintf("%s/%s/%s/%s", releasesURL, version, meta.OSTreeVersion, meta.Images.QEMU.Path)
+	log.Println(fmt.Sprintf("Downloading image from: %s", finalQcow2))
+
+	// now download and uncompress the image
+	localQcow2 := fmt.Sprintf("%s/rhcos-qemu.qcow2.gz", buildPath)
+	cmd := exec.Command("curl", "--compressed", "-L", finalQcow2, "-o", localQcow2)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error downloading qcow2: %s - %s", err, string(out)))
+		os.Exit(1)
+	}
+
+	// now convert the image and compress it
+	localRaw := fmt.Sprintf("%s/rhcos-qemu.raw", buildPath)
+	cmd = exec.Command("qemu-img", "convert", localQcow2, localRaw)
+	out, err = cmd.CombinedOutput()
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error converting image: %s - %s", err, string(out)))
+		os.Exit(1)
+	}
+
+	// and now compress it
+	cmd = exec.Command("gzip", localRaw)
+	out, err = cmd.CombinedOutput()
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error compressing image: %s - %s", err, string(out)))
+		os.Exit(1)
+	}
+	log.Println(fmt.Sprintf("Final deployment image is at: %s/rhcos-qemu.raw.gz", buildPath))
+}
+
 // imagesCmd represents the images command
 var imagesCmd = &cobra.Command{
 	Use:              "images",
@@ -163,7 +294,9 @@ var imagesCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		GenerateInstallerImages(buildPath)
+		releasesURL, _ := cmd.Flags().GetString("releases_url")
+		GenerateDeploymentImage(buildPath, releasesURL, version)
+		//GenerateInstallerImages(buildPath)
 	},
 }
 
@@ -172,4 +305,6 @@ func init() {
 
 	imagesCmd.Flags().StringP("build_path", "", "", "Directory to use as build path. If that not exists, the installer will generate a default directory")
 	imagesCmd.Flags().StringP("version", "", "", "Version of the images being generated (maipo, ootpa)")
+	imagesCmd.Flags().StringP("releases_url", "", "", "URL where to download the latest release of RHCOS")
+	imagesCmd.MarkFlagRequired("releases_url")
 }
