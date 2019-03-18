@@ -16,6 +16,24 @@
       "revId": "160c04297dad2160026ba1aa98054e8bd155a4e7",
       "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25a66e88_cf8f6b33",
+        "filename": "cmd/images.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-03-18T13:32:17Z",
+      "side": 1,
+      "message": "I had to do something with that cancel(), because if i was not using it i got an error. And seems i could not ignore getting this var and use _, it was throwing another error. I copied this code from openshift actually.... what are the other alternatives for doing something with that cancel?",
+      "parentUuid": "a01efa43_b50a831c",
+      "revId": "160c04297dad2160026ba1aa98054e8bd155a4e7",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
     }
   ]
 }
