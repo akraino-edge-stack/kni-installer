@@ -19,6 +19,10 @@ ifndef MASTER_MEMORY_MB
 override MASTER_MEMORY_MB = "11192"
 endif
 
+ifndef RELEASES_URL
+override RELEASES_URL = "https://releases-rhcos.svc.ci.openshift.org/storage/releases/"
+endif
+
 all: watch
 
 binary:
@@ -40,7 +44,7 @@ deploy:
 
 images:
 	@echo "Launching image generation"
-	@./bin/$(GONAME) images --build_path $(BUILDDIR) --version $(RHCOS_VERSION)
+	@./bin/$(GONAME) images --build_path $(BUILDDIR) --version $(RHCOS_VERSION) --releases_url $(RELEASES_URL)
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
