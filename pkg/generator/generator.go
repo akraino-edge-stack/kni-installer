@@ -27,12 +27,13 @@ type Generator struct {
 	settingsPath   string
 	buildPath      string
 	masterMemoryMB string
+	sshKeyPath     string
 	secrets        map[string]string
 }
 
 // New constructor for the generator
-func New(baseRepo string, basePath string, installerPath string, secretsRepo string, siteRepo string, settingsPath string, buildPath string, masterMemoryMB string) Generator {
-	g := Generator{baseRepo, basePath, installerPath, secretsRepo, siteRepo, settingsPath, buildPath, masterMemoryMB, make(map[string]string)}
+func New(baseRepo string, basePath string, installerPath string, secretsRepo string, siteRepo string, settingsPath string, buildPath string, masterMemoryMB string, sshKeyPath string) Generator {
+	g := Generator{baseRepo, basePath, installerPath, secretsRepo, siteRepo, settingsPath, buildPath, masterMemoryMB, sshKeyPath, make(map[string]string)}
 	return g
 }
 
@@ -56,8 +57,11 @@ func (g Generator) DownloadArtifacts() {
 	// Retrieve private key and b64encode it, if secrets is not local
 	finalURL := ""
 	if !strings.HasPrefix(g.secretsRepo, "file://") {
-		rsaPrivateLocation := fmt.Sprintf("%s/.ssh/id_rsa", os.Getenv("HOME"))
-		priv, _ := ioutil.ReadFile(rsaPrivateLocation)
+		priv, err := ioutil.ReadFile(g.sshKeyPath)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("Error reading secret key: %s", err))
+			os.Exit(1)
+		}
 		sEnc := base64.StdEncoding.EncodeToString(priv)
 		finalURL = fmt.Sprintf("%s?sshkey=%s", g.secretsRepo, sEnc)
 	} else {

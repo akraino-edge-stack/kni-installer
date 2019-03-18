@@ -23,6 +23,10 @@ ifndef RELEASES_URL
 override RELEASES_URL = "https://releases-rhcos.svc.ci.openshift.org/storage/releases/"
 endif
 
+ifndef SSH_KEY_PATH
+override SSH_KEY_PATH = "${HOME}/.ssh/id_rsa"
+endif
+
 all: watch
 
 binary:
@@ -40,7 +44,7 @@ clean:
 
 deploy:
 	@echo "Launching cluster deployment bin/$(GONAME)"
-	@./bin/$(GONAME) generate --installer_path $(INSTALLER_PATH) --build_path $(BUILDDIR) --base_repository $(BASE_REPO) --base_path $(BASE_PATH) --secrets_repository $(CREDENTIALS) --site_repository $(SITE_REPO) --settings_path $(SETTINGS_PATH) --master_memory_mb $(MASTER_MEMORY_MB)
+	@./bin/$(GONAME) generate --installer_path $(INSTALLER_PATH) --build_path $(BUILDDIR) --base_repository $(BASE_REPO) --base_path $(BASE_PATH) --secrets_repository $(CREDENTIALS) --site_repository $(SITE_REPO) --settings_path $(SETTINGS_PATH) --master_memory_mb $(MASTER_MEMORY_MB) --ssh_key_path $(SSH_KEY_PATH)
 
 images:
 	@echo "Launching image generation"
@@ -51,7 +55,7 @@ help:
 	@echo "  binary to generate a new openshift-install binary"
 	@echo "  build to produce the installer binary"
 	@echo "  clean to destroy a previously created cluster and remove build contents"
-	@echo "  deploy CREDENTIALS=<github_secret_repo> BASE_REPO=<github_manifests_repo> BASE_PATH=<subpath_on_manifests_repo> SITE_REPO=<github_site_repo> SETTINGS_PATH=<subpath_on_site_repo>"
+	@echo "  deploy CREDENTIALS=<github_secret_repo> BASE_REPO=<github_manifests_repo> BASE_PATH=<subpath_on_manifests_repo> SITE_REPO=<github_site_repo> SETTINGS_PATH=<subpath_on_site_repo> SSH_KEY_PATH=<path_to_id_rsa>"
 	@echo "  images to download baremetal images"
 
 .PHONY: build get install run watch start stop restart clean

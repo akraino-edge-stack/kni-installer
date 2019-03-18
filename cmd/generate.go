@@ -37,6 +37,7 @@ var generateCmd = &cobra.Command{
 		siteRepository, _ := cmd.Flags().GetString("site_repository")
 		settingsPath, _ := cmd.Flags().GetString("settings_path")
 		masterMemoryMB, _ := cmd.Flags().GetString("master_memory_mb")
+		sshKeyPath, _ := cmd.Flags().GetString("ssh_key_path")
 
 		// Check if build path exists, create if not
 		buildPath, _ := cmd.Flags().GetString("build_path")
@@ -50,7 +51,7 @@ var generateCmd = &cobra.Command{
 		}
 
 		// start generation process
-		g := generator.New(baseRepo, basePath, installerPath, secretsRepository, siteRepository, settingsPath, buildPath, masterMemoryMB)
+		g := generator.New(baseRepo, basePath, installerPath, secretsRepository, siteRepository, settingsPath, buildPath, masterMemoryMB, sshKeyPath)
 		g.GenerateManifests()
 	},
 }
@@ -74,5 +75,7 @@ func init() {
 	generateCmd.MarkFlagRequired("settings_path")
 
 	generateCmd.Flags().StringP("master_memory_mb", "", "", "MB of memory to use for master node (libvirt)")
+	generateCmd.Flags().StringP("ssh_key_path", "", "", "Path for the SSH private key to retrieve private repos")
+	generateCmd.MarkFlagRequired("ssh_key_path")
 
 }
