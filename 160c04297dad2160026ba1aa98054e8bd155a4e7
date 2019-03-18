@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a01efa43_b50a831c",
+        "filename": "cmd/images.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 169
+      },
+      "writtenOn": "2019-03-18T12:00:26Z",
+      "side": 1,
+      "message": "I don\u0027t think you want to actually call cancel, whether it\u0027s a direct call or deferred, unless you encounter some sort of error and want all goroutines in the context to halt operation.  Using \"WithTimeout\" will automatically call cancel() after 30 seconds here, anyhow.",
+      "revId": "160c04297dad2160026ba1aa98054e8bd155a4e7",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
+    }
+  ]
+}
