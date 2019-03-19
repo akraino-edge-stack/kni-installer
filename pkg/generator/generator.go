@@ -13,27 +13,52 @@ import (
 	"strings"
 	"text/template"
 
+	yamlsearch "gerrit.akraino.org/kni/installer/pkg/yamlsearch"
 	getter "github.com/hashicorp/go-getter"
 	"gopkg.in/yaml.v2"
 )
 
+// Definition : to collect information from manifests
+type Definition struct {
+	name string
+	keys []string
+}
+
 // Generator : Structure that contains the settings needed for generation
 type Generator struct {
-	baseRepo       string
-	basePath       string
-	installerPath  string
-	secretsRepo    string
-	siteRepo       string
-	settingsPath   string
-	buildPath      string
-	masterMemoryMB string
-	sshKeyPath     string
-	secrets        map[string]string
+	baseRepo               string
+	basePath               string
+	installerPath          string
+	secretsRepo            string
+	siteRepo               string
+	settingsPath           string
+	settingsContent        map[string]string
+	buildPath              string
+	masterMemoryMB         string
+	sshKeyPath             string
+	secrets                map[string]string
+	manifestKeys           map[string]string
+	manifestKeyDefinitions map[string][]Definition
 }
 
 // New constructor for the generator
 func New(baseRepo string, basePath string, installerPath string, secretsRepo string, siteRepo string, settingsPath string, buildPath string, masterMemoryMB string, sshKeyPath string) Generator {
-	g := Generator{baseRepo, basePath, installerPath, secretsRepo, siteRepo, settingsPath, buildPath, masterMemoryMB, sshKeyPath, make(map[string]string)}
+	manifestKeyDefinitions := map[string][]Definition{
+		"manifests/cvo-overrides.yaml":                                    []Definition{Definition{"clusterID", []string{"spec", "clusterID"}}},
+		"manifests/kube-system-configmap-etcd-serving-ca.yaml":            []Definition{Definition{"EtcdServingCaBundleCRT", []string{"data", "ca-bundle.crt"}}},
+		"manifests/kube-system-configmap-root-ca.yaml":                    []Definition{Definition{"RootCaCRT", []string{"data", "ca.crt"}}},
+		"manifests/kube-system-secret-etcd-client.yaml":                   []Definition{Definition{"EtcdTlsCRT", []string{"data", "tls.crt"}}, Definition{"EtcdTlsKey", []string{"data", "tls.key"}}},
+		"manifests/machine-config-server-tls-secret.yaml":                 []Definition{Definition{"MachineConfigServerTlsCRT", []string{"data", "tls.crt"}}, Definition{"MachineConfigServerTlsKey", []string{"data", "tls.key"}}},
+		"manifests/cluster-dns-02-config.yml":                             []Definition{Definition{"publicZoneID", []string{"spec", "publicZone", "id"}}},
+		"manifests/pull.json":                                             []Definition{Definition{"pullSecret", []string{"data", ".dockerconfigjson"}}},
+		"openshift/99_cloud-creds-secret.yaml":                            []Definition{Definition{"AWSKey", []string{"data", "aws_access_key_id"}}, Definition{"AWSSecret", []string{"data", "aws_secret_access_key"}}},
+		"openshift/99_kubeadmin-password-secret.yaml":                     []Definition{Definition{"KubeadminPassword", []string{"data", "kubeadmin"}}},
+		"openshift/99_openshift-cluster-api_master-machines-0.yaml":       []Definition{Definition{"AWSAmiID", []string{"spec", "providerSpec", "value", "ami", "id"}}},
+		"openshift/99_openshift-cluster-api_master-user-data-secret.yaml": []Definition{Definition{"MasterUserDataDisableTemplating", []string{"items", "data", "disableTemplating"}}, Definition{"MasterUserDataSecret", []string{"items", "data", "userData"}}},
+		"openshift/99_openshift-cluster-api_worker-user-data-secret.yaml": []Definition{Definition{"WorkerUserDataDisableTemplating", []string{"items", "data", "disableTemplating"}}, Definition{"WorkerUserDataSecret", []string{"items", "data", "userData"}}},
+	}
+	g := Generator{baseRepo, basePath, installerPath, secretsRepo, siteRepo, settingsPath, make(map[string]string), buildPath, masterMemoryMB, sshKeyPath,
+		make(map[string]string), make(map[string]string), manifestKeyDefinitions}
 	return g
 }
 
@@ -163,14 +188,17 @@ func (g Generator) GenerateInstallConfig() {
 	err = filepath.Walk(secretsPath, g.ReadSecretFiles)
 
 	// Prepare the final file to write the template
-	f, err := os.Create(fmt.Sprintf("%s/install-config.yaml", g.buildPath))
+	workingPath := fmt.Sprintf("%s/working_manifests", g.buildPath)
+	os.RemoveAll(workingPath)
+	os.MkdirAll(workingPath, 0775)
+
+	f, err := os.Create(fmt.Sprintf("%s/working_manifests/install-config.yaml", g.buildPath))
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Error opening the install file: %s", err))
 		os.Exit(1)
 	}
 
 	// Prepare the vars to be executed in the template
-	var settings = make(map[string]string)
 	var mandatorySettings = map[string]string{
 		"baseDomain":          "string",
 		"clusterName":         "string",
@@ -183,9 +211,9 @@ func (g Generator) GenerateInstallConfig() {
 	for key, value := range mandatorySettings {
 		if _, ok := parsedSettings[key]; ok {
 			if value == "int" {
-				settings[key] = fmt.Sprintf("%d", parsedSettings[key].(int))
+				g.settingsContent[key] = fmt.Sprintf("%d", parsedSettings[key].(int))
 			} else {
-				settings[key] = parsedSettings[key].(string)
+				g.settingsContent[key] = parsedSettings[key].(string)
 			}
 		}
 	}
@@ -193,20 +221,19 @@ func (g Generator) GenerateInstallConfig() {
 	providerSettings := [2]string{"libvirtURI", "AWSRegion"}
 	for _, element := range providerSettings {
 		if _, ok := parsedSettings[element]; ok {
-			settings[element] = parsedSettings[element].(string)
+			g.settingsContent[element] = parsedSettings[element].(string)
 		}
 	}
 
 	// Merge with secrets dictionary
 	for k, v := range g.secrets {
-		settings[k] = v
+		g.settingsContent[k] = v
 	}
-	err = t.Execute(f, settings)
+	err = t.Execute(f, g.settingsContent)
 
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Error parsing template: %s", err))
 	}
-
 }
 
 // GenerateCredentials create the AWS credentials file if needed
@@ -243,7 +270,7 @@ func (g Generator) GenerateCredentials() {
 // CreateManifests creates the initial manifests for the cluster
 func (g Generator) CreateManifests() {
 	log.Println("Creating manifests")
-	cmd := exec.Command("./openshift-install", "create", "manifests")
+	cmd := exec.Command("./openshift-install", "create", "manifests", "--dir", "working_manifests")
 	cmd.Dir = g.buildPath
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -252,10 +279,67 @@ func (g Generator) CreateManifests() {
 	}
 }
 
+// ExtractKeysFromManifests will extract the needed keys for future deployments
+func (g Generator) ExtractKeysFromManifests() {
+	// The Kubernetes Go client (nested within the OpenShift Go client)
+	// automatically registers its types in scheme.Scheme, however the
+	// additional OpenShift types must be registered manually.  AddToScheme
+	// registers the API group types (e.g. route.openshift.io/v1, Route) only.
+
+	log.Println("Extracting keys")
+
+	// iterate over all key definitions
+	for file, keys := range g.manifestKeyDefinitions {
+		// first check if the file exists
+		manifestFile := fmt.Sprintf("%s/working_manifests/%s", g.buildPath, file)
+		if _, err := os.Stat(manifestFile); err == nil {
+			// parse the manifest file
+			yamlContent, err := ioutil.ReadFile(manifestFile)
+			if err != nil {
+				log.Fatal(fmt.Sprintf("Error reading manifest file: %s", err))
+				os.Exit(1)
+			}
+
+			content := map[interface{}]interface{}{}
+			err = yaml.Unmarshal(yamlContent, &content)
+
+			for _, value := range keys {
+				seekedValue := yamlsearch.FindValue(content, value.keys)
+
+				if seekedValue != "" {
+					g.manifestKeys[value.name] = seekedValue
+				} else {
+					log.Fatal(fmt.Sprintf("Error: key not found %s", seekedValue))
+					os.Exit(1)
+				}
+			}
+		} else {
+			log.Println(fmt.Sprintf("Manifest file %s does not exist", file))
+		}
+	}
+
+	// add values from settings, as they are not added in clear on manifests
+	keys := []string{"baseDomain", "clusterName", "clusterCIDR", "machineCIDR", "serviceCIDR", "SSHKey"}
+	for _, k := range keys {
+		g.manifestKeys[k] = g.settingsContent[k]
+	}
+
+	// write the keys into a metadata file
+	metadataPath := fmt.Sprintf("%s/metatada.yaml", g.buildPath)
+	manifestKeysYaml, _ := yaml.Marshal(g.manifestKeys)
+
+	err := ioutil.WriteFile(metadataPath, manifestKeysYaml, 0644)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error writing metadata file: %s", err))
+		os.Exit(1)
+	}
+
+}
+
 // DeployCluster starts deployment of the cluster
 func (g Generator) DeployCluster() {
 	log.Println("Deploying cluster")
-	cmd := exec.Command("./openshift-install", "create", "cluster")
+	cmd := exec.Command("./openshift-install", "create", "cluster", "--dir", "working_manifests")
 	cmd.Dir = g.buildPath
 
 	if len(g.masterMemoryMB) > 0 {
@@ -289,6 +373,9 @@ func (g Generator) GenerateManifests() {
 
 	// Create manifests
 	g.CreateManifests()
+
+	// Extract needed keys from the manifests
+	g.ExtractKeysFromManifests()
 
 	// Deploy cluster
 	g.DeployCluster()
