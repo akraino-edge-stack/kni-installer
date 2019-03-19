@@ -15,25 +15,48 @@ import (
 
 	getter "github.com/hashicorp/go-getter"
 	"gopkg.in/yaml.v2"
+
+	appsv1 "github.com/openshift/api/apps/v1"
+	authorizationv1 "github.com/openshift/api/authorization/v1"
+	buildv1 "github.com/openshift/api/build/v1"
+	imagev1 "github.com/openshift/api/image/v1"
+	networkv1 "github.com/openshift/api/network/v1"
+	oauthv1 "github.com/openshift/api/oauth/v1"
+	projectv1 "github.com/openshift/api/project/v1"
+	quotav1 "github.com/openshift/api/quota/v1"
+	routev1 "github.com/openshift/api/route/v1"
+	securityv1 "github.com/openshift/api/security/v1"
+	templatev1 "github.com/openshift/api/template/v1"
+	userv1 "github.com/openshift/api/user/v1"
+
+	"k8s.io/apimachinery/pkg/runtime/serializer/json"
+	"k8s.io/client-go/kubernetes/scheme"
 )
 
 // Generator : Structure that contains the settings needed for generation
 type Generator struct {
-	baseRepo       string
-	basePath       string
-	installerPath  string
-	secretsRepo    string
-	siteRepo       string
-	settingsPath   string
-	buildPath      string
-	masterMemoryMB string
-	sshKeyPath     string
-	secrets        map[string]string
+	baseRepo               string
+	basePath               string
+	installerPath          string
+	secretsRepo            string
+	siteRepo               string
+	settingsPath           string
+	buildPath              string
+	masterMemoryMB         string
+	sshKeyPath             string
+	secrets                map[string]string
+	manifestKeys           map[string]string
+	manifestKeyDefinitions map[string][]string
 }
 
 // New constructor for the generator
 func New(baseRepo string, basePath string, installerPath string, secretsRepo string, siteRepo string, settingsPath string, buildPath string, masterMemoryMB string, sshKeyPath string) Generator {
-	g := Generator{baseRepo, basePath, installerPath, secretsRepo, siteRepo, settingsPath, buildPath, masterMemoryMB, sshKeyPath, make(map[string]string)}
+	manifestKeyDefinitions := map[string][]string{
+		"openshift/99_cloud-creds-secret.yaml": []string{"data/aws_access_key_id", "data/aws_secret_access_key"},
+	}
+
+	g := Generator{baseRepo, basePath, installerPath, secretsRepo, siteRepo, settingsPath, buildPath, masterMemoryMB, sshKeyPath,
+		make(map[string]string), make(map[string]string), manifestKeyDefinitions}
 	return g
 }
 
@@ -163,7 +186,11 @@ func (g Generator) GenerateInstallConfig() {
 	err = filepath.Walk(secretsPath, g.ReadSecretFiles)
 
 	// Prepare the final file to write the template
-	f, err := os.Create(fmt.Sprintf("%s/install-config.yaml", g.buildPath))
+	workingPath := fmt.Sprintf("%s/working_manifests", g.buildPath)
+	os.RemoveAll(workingPath)
+	os.MkdirAll(workingPath, 0775)
+
+	f, err := os.Create(fmt.Sprintf("%s/working_manifests/install-config.yaml", g.buildPath))
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Error opening the install file: %s", err))
 		os.Exit(1)
@@ -243,7 +270,7 @@ func (g Generator) GenerateCredentials() {
 // CreateManifests creates the initial manifests for the cluster
 func (g Generator) CreateManifests() {
 	log.Println("Creating manifests")
-	cmd := exec.Command("./openshift-install", "create", "manifests")
+	cmd := exec.Command("./openshift-install", "create", "manifests", "--dir", "working_manifests")
 	cmd.Dir = g.buildPath
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -252,10 +279,73 @@ func (g Generator) CreateManifests() {
 	}
 }
 
+// ExtractKeysFromManifests will extract the needed keys for future deployments
+func (g Generator) ExtractKeysFromManifests() {
+	// The Kubernetes Go client (nested within the OpenShift Go client)
+	// automatically registers its types in scheme.Scheme, however the
+	// additional OpenShift types must be registered manually.  AddToScheme
+	// registers the API group types (e.g. route.openshift.io/v1, Route) only.
+	appsv1.AddToScheme(scheme.Scheme)
+	authorizationv1.AddToScheme(scheme.Scheme)
+	buildv1.AddToScheme(scheme.Scheme)
+	imagev1.AddToScheme(scheme.Scheme)
+	networkv1.AddToScheme(scheme.Scheme)
+	oauthv1.AddToScheme(scheme.Scheme)
+	projectv1.AddToScheme(scheme.Scheme)
+	quotav1.AddToScheme(scheme.Scheme)
+	routev1.AddToScheme(scheme.Scheme)
+	securityv1.AddToScheme(scheme.Scheme)
+	templatev1.AddToScheme(scheme.Scheme)
+	userv1.AddToScheme(scheme.Scheme)
+
+	// If you need to serialize/deserialize legacy (non-API group) OpenShift
+	// types (e.g. v1, Route), these must be additionally registered using
+	// AddToSchemeInCoreGroup.
+	appsv1.AddToSchemeInCoreGroup(scheme.Scheme)
+	authorizationv1.AddToSchemeInCoreGroup(scheme.Scheme)
+	buildv1.AddToSchemeInCoreGroup(scheme.Scheme)
+	imagev1.AddToSchemeInCoreGroup(scheme.Scheme)
+	networkv1.AddToSchemeInCoreGroup(scheme.Scheme)
+	oauthv1.AddToSchemeInCoreGroup(scheme.Scheme)
+	projectv1.AddToSchemeInCoreGroup(scheme.Scheme)
+	quotav1.AddToSchemeInCoreGroup(scheme.Scheme)
+	routev1.AddToSchemeInCoreGroup(scheme.Scheme)
+	securityv1.AddToSchemeInCoreGroup(scheme.Scheme)
+	templatev1.AddToSchemeInCoreGroup(scheme.Scheme)
+	userv1.AddToSchemeInCoreGroup(scheme.Scheme)
+	log.Println("Extracting keys")
+
+	// iterate over all key definitions
+	for file, keys := range g.manifestKeyDefinitions {
+		// first check if the file exists
+		manifestFile := fmt.Sprintf("%s/working_manifests/%s", g.buildPath, file)
+		if _, err := os.Stat(manifestFile); err == nil {
+			// parse the manifest file
+			yamlContent, err := ioutil.ReadFile(manifestFile)
+			if err != nil {
+				log.Fatal(fmt.Sprintf("Error reading manifest file: %s", err))
+				os.Exit(1)
+			}
+
+			// Create a YAML serializer.  JSON is a subset of YAML, so is supported too.
+			s := json.NewYAMLSerializer(json.DefaultMetaFactory, scheme.Scheme, scheme.Scheme)
+
+			// Decode the YAML to an object.
+			obj, _, err := s.Decode(yamlContent, nil, nil)
+			if err != nil {
+				log.Fatal(fmt.Sprintf("Error decoding YAML manifest: %s", err))
+				os.Exit(1)
+			}
+			log.Println(obj)
+		}
+		log.Println(keys)
+	}
+}
+
 // DeployCluster starts deployment of the cluster
 func (g Generator) DeployCluster() {
 	log.Println("Deploying cluster")
-	cmd := exec.Command("./openshift-install", "create", "cluster")
+	cmd := exec.Command("./openshift-install", "create", "cluster", "--dir", "working_manifests")
 	cmd.Dir = g.buildPath
 
 	if len(g.masterMemoryMB) > 0 {
@@ -289,6 +379,9 @@ func (g Generator) GenerateManifests() {
 
 	// Create manifests
 	g.CreateManifests()
+
+	// Extract needed keys from the manifests
+	g.ExtractKeysFromManifests()
 
 	// Deploy cluster
 	g.DeployCluster()
