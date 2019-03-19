@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "155e3523_b2623e17",
+        "filename": "pkg/generator/generator.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 154
+      },
+      "writtenOn": "2019-03-19T10:22:30Z",
+      "side": 1,
+      "message": "wouldn\u0027t it be better to check if the workingPath exists first, and then call the RemoveAll? Otherwise, it\u0027s two calls to the OS.",
+      "range": {
+        "startLine": 173,
+        "startChar": 0,
+        "endLine": 174,
+        "endChar": 31
+      },
+      "revId": "1a8e506c55b53dc90a84850f399cf5285cdea327",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
+    }
+  ]
+}
