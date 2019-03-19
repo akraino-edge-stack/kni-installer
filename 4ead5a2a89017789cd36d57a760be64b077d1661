@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9b300154_a7fa4f97",
+        "filename": "docs/baremetal.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 171
+      },
+      "writtenOn": "2019-03-19T14:05:38Z",
+      "side": 1,
+      "message": "The match rule is highly dependent upon the pxe code, at least for the NUCs and Shuttle Server, I had to use dhcp-vendorclass i.e.\n\ndhcp-vendorclass\u003dUEFI,PXEClient:Arch:00007:UNDI:003016\n\nAlso, I needed to add\n\nlisten-address\u003d192.168.2.0 . \n\nwhich is the IP subnet for the specified NIC interface,\notherwise there was a conflict.",
+      "revId": "4ead5a2a89017789cd36d57a760be64b077d1661",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1aafd3d0_3671be21",
+        "filename": "docs/baremetal.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 171
+      },
+      "writtenOn": "2019-03-19T14:05:38Z",
+      "side": 1,
+      "message": "Why do you include the rd.break\u003dmount?",
+      "revId": "4ead5a2a89017789cd36d57a760be64b077d1661",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
+    }
+  ]
+}
