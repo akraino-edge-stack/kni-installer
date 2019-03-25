@@ -90,6 +90,13 @@ SETTINGS can be a path to local file, or an url, will be queried with curl.
 
 The make process will create the needed artifacts and will start the deployment of the specified cluster
 
+Please consider that, for security reasons. AWS has disabled the SSH access to
+nodes. If you need to SSH for any reason, please take a look at `Unable to SSH
+into Master Nodes` section from the following document:
+
+[https://github.com/openshift/installer/blob/master/docs/user/troubleshooting.md](https://github.com/openshift/installer/blob/master/docs/user/troubleshooting.md)
+
+
 ## How to deploy for Libvirt
 
 First of all, we need to prepare a host in order to configure libvirt, iptables, permissions, etc. So far this is a manual process:
