@@ -63,7 +63,7 @@ func init() {
 	generateCmd.MarkFlagRequired("base_repository")
 	generateCmd.Flags().StringP("base_path", "", "", "Path to the base config and manifests for the blueprint")
 	generateCmd.MarkFlagRequired("base_path")
-	generateCmd.Flags().StringP("installer_path", "", "https://github.com/openshift/installer/releases/download/v0.14.0/openshift-install-linux-amd64", "Path where openshift-install binary is stored")
+	generateCmd.Flags().StringP("installer_path", "", "https://github.com/openshift/installer/releases/download/v0.16.1/openshift-install-linux-amd64", "Path where openshift-install binary is stored")
 	generateCmd.Flags().StringP("build_path", "", "", "Directory to use as build path. If that not exists, the installer will generate a default directory")
 
 	generateCmd.Flags().StringP("secrets_repository", "", "", "Path to repository that contains secrets")

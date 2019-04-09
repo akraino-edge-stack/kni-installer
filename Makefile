@@ -8,11 +8,11 @@ INSTALLER_GIT_REPO = github.com/openshift/installer
 RHCOS_VERSION = "maipo"
 
 ifndef INSTALLER_PATH
-override INSTALLER_PATH = https://github.com/openshift/installer/releases/download/v0.14.0/openshift-install-linux-amd64
+override INSTALLER_PATH = https://github.com/openshift/installer/releases/download/v0.16.1/openshift-install-linux-amd64
 endif
 
 ifndef INSTALLER_GIT_TAG
-override INSTALLER_GIT_TAG = "v0.14.0"
+override INSTALLER_GIT_TAG = "v0.16.1"
 endif
 
 ifndef MASTER_MEMORY_MB
