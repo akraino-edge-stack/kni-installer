@@ -75,7 +75,7 @@ func ExtractIsoFiles(isoPath string, buildPath string) {
 	}
 
 	// copy the images to the build directory
-	cmd = exec.Command("cp", fmt.Sprintf("%s/images/vmlinuz", mountPath), buildPath)
+	cmd = exec.Command("cp", fmt.Sprintf("%s/vmlinuz", mountPath), buildPath)
 	cmd.Dir = buildPath
 	out, err = cmd.CombinedOutput()
 	if err != nil {
@@ -84,7 +84,7 @@ func ExtractIsoFiles(isoPath string, buildPath string) {
 		os.Exit(1)
 	}
 
-	cmd = exec.Command("cp", fmt.Sprintf("%s/images/initramfs.img", mountPath), buildPath)
+	cmd = exec.Command("cp", fmt.Sprintf("%s/initramfs.img", mountPath), buildPath)
 	cmd.Dir = buildPath
 	out, err = cmd.CombinedOutput()
 	if err != nil {
