@@ -145,7 +145,7 @@ coreos-assembler buildextend-installer
 	log.Println(stdBuffer.String())
 
 	// once the iso has been generated, extract vmlinuz/initramfs.img
-	isoPath := fmt.Sprintf("%s/builds/latest/fedora-coreos-29.iso", cosaPath)
+	isoPath := fmt.Sprintf("%s/builds/latest/fedora-coreos-29-installer.iso", cosaPath)
 	if _, err := os.Stat(isoPath); os.IsNotExist(err) {
 		// path/to/whatever does not exist
 		log.Fatal("Final ISO image does not exist")
