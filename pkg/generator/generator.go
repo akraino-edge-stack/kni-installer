@@ -29,11 +29,14 @@ type Generator struct {
 	masterMemoryMB string
 	sshKeyPath     string
 	secrets        map[string]string
+	clusterName    string
+	baseDomain     string
+	providerType   string
 }
 
 // New constructor for the generator
 func New(baseRepo string, basePath string, installerPath string, secretsRepo string, siteRepo string, settingsPath string, buildPath string, masterMemoryMB string, sshKeyPath string) Generator {
-	g := Generator{baseRepo, basePath, installerPath, secretsRepo, siteRepo, settingsPath, buildPath, masterMemoryMB, sshKeyPath, make(map[string]string)}
+	g := Generator{baseRepo, basePath, installerPath, secretsRepo, siteRepo, settingsPath, buildPath, masterMemoryMB, sshKeyPath, make(map[string]string), "", "", ""}
 	return g
 }
 
@@ -122,7 +125,7 @@ func (g Generator) ReadSecretFiles(path string, info os.FileInfo, err error) err
 }
 
 // GenerateInstallConfig generates the initial config.yaml
-func (g Generator) GenerateInstallConfig() {
+func (g *Generator) GenerateInstallConfig() {
 	// Read install-config.yaml on the given path and parse it
 	manifestsPath := fmt.Sprintf("%s/base_manifests/%s", g.buildPath, g.basePath)
 	installPath := fmt.Sprintf("%s/install-config.yaml.go", manifestsPath)
@@ -148,6 +151,8 @@ func (g Generator) GenerateInstallConfig() {
 		os.Exit(1)
 	}
 	parsedSettings := (*siteSettings)["settings"]
+	g.clusterName = parsedSettings["clusterName"].(string)
+	g.baseDomain = parsedSettings["baseDomain"].(string)
 
 	// Read secrets
 	secretsPath := fmt.Sprintf("%s/secrets", g.buildPath)
@@ -195,6 +200,12 @@ func (g Generator) GenerateInstallConfig() {
 		if _, ok := parsedSettings[element]; ok {
 			settings[element] = parsedSettings[element].(string)
 		}
+	}
+
+	if _, ok := settings["libvirtURI"]; ok {
+		g.providerType = "libvirt"
+	} else if _, ok := settings["AWSRegion"]; ok {
+		g.providerType = "aws"
 	}
 
 	// Merge with secrets dictionary
@@ -252,6 +263,31 @@ func (g Generator) CreateManifests() {
 	}
 }
 
+
+//ModifyIngressManifest modifies the cluster ingress manifest for Libvirt deployments
+func (g Generator) ModifyIngressManifest() {
+        log.Println("Modify Ingress Manifest")
+        file := g.buildPath+"/manifests/cluster-ingress-02-config.yml"
+        input, err := ioutil.ReadFile(file)
+        if err != nil {
+                log.Fatalln(err)
+        }
+
+        lines := strings.Split(string(input), "\n")
+
+        for i, line := range lines {
+                if strings.Contains(line, "domain") {
+                        lines[i] = "  domain: apps."+g.baseDomain
+                }
+        }
+        output := strings.Join(lines, "\n")
+        err = ioutil.WriteFile(file, []byte(output), 0644)
+        if err != nil {
+                log.Fatalln(err)
+        }
+}
+
+
 // DeployCluster starts deployment of the cluster
 func (g Generator) DeployCluster() {
 	log.Println("Deploying cluster")
@@ -290,6 +326,11 @@ func (g Generator) GenerateManifests() {
 	// Create manifests
 	g.CreateManifests()
 
+	// Modify Ingress manifest if libvirt
+	if g.providerType == "libvirt" {
+		g.ModifyIngressManifest()
+	}
+
 	// Deploy cluster
-	g.DeployCluster()
+	//g.DeployCluster()
 }
