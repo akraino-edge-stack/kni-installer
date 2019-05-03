@@ -9,6 +9,10 @@ This is needed to have download access to the OpenShift installer artifacts.
 After that, you will need to download the Pull Secret from
 [https://cloud.openshift.com/clusters/install](https://cloud.openshift.com/clusters/install) - Step 4: Deploy the Cluster
 
+Next step is to clone the kni/installer repo:
+
+    git clone https://gerrit.akraino.org/r/kni/installer
+
 ## How to build
 
 First the `kni-edge-installer` binary needs to be produced. For that you just execute make with the following syntax:
@@ -22,7 +26,12 @@ This will produce the `kni-edge-installer` binary that can be used to deploy a s
 There is a Makefile on the root directory of this project. In order to deploy
 you will need to use the following syntax:
 
-    make deploy CREDENTIALS=<git_private_repo> SETTINGS=<path_to_sample_settings> BASE_REPO=<git_base_manifests_repo> BASE_PATH=<path_in_manifests_repo>
+    export CREDENTIALS=file://$(pwd)/akraino-secrets
+    export BASE_REPO="git::https://gerrit.akraino.org/r/kni/templates"
+    export BASE_PATH="aws/3-node"
+    export SITE_REPO="git::https://gerrit.akraino.org/r/kni/templates"
+    export SETTINGS_PATH="aws/sample_settings.yaml"
+    make deploy
 
 **CREDENTIALS: Content of private repo**
 
@@ -45,7 +54,7 @@ You should create a directory with a known path, and your directory shall contai
 
 **BASE_REPO: Repository for the base manifests**
 
-This is the repository where the default manifest templates are stored. There is one specific folder for each blueprint and provider: aws/1-node, libvirt/1-node, etc... This can be any repository with the right templates, but for Akraino it currently defaults to github.com/redhat-nfvpe/kni-edge-base.git
+This is the repository where the default manifest templates are stored. There is one specific folder for each blueprint and provider: aws/1-node, libvirt/1-node, etc... This can be any repository with the right templates, but for Akraino it currently defaults to git::https://gerrit.akraino.org/r/kni/templates
 
 **BASE_PATH: Path inside base manifests**
 
@@ -53,11 +62,11 @@ Once the manifests repository is being cloned, it will contain several folders w
 
 **SITE_REPO: Repository for the site manifests**
 
-Each site can have different manifests and settings. This needs to be a per-site repository where individual settings need to be stored, and where the generated manifests per site will be stored (TODO).
+Repository for the site manifests. Each site can have different manifests and settings, this needs to be a per-site repository where individual settings need to be stored, and where the generated manifests per site will be stored. For Akraino, it's defaulting to git::https://gerrit.akraino.org/r/kni/templates
 
 **SETTINGS_PATH: Specific site settings**
 
-Once the site repository is being cloned, it needs to contain a settings.yaml file with the per-site settings. This needs to be the path inside the SITE_REPO where the settings.yaml is contained. A sample settings file can be seen at [https://gerrit.akraino.org/r/gitweb?p=kni/templates.git;a=blob_plain;f=libvirt/sample_settings.yaml;hb=refs/heads/master](https://gerrit.akraino.org/r/gitweb?p=kni/templates.git;a=blob_plain;f=libvirt/sample_settings.yaml;hb=refs/heads/master) for libvirt, and at [https://gerrit.akraino.org/r/gitweb?p=kni/templates.git;a=blob_plain;f=aws/sample_settings.yaml;hb=refs/heads/master](https://gerrit.akraino.org/r/gitweb?p=kni/templates.git;a=blob_plain;f=aws/sample_settings.yaml;hb=refs/heads/master) for AWS. Different settings file need to be created per site.
+Specific site settings. Once the site repository is being cloned, it needs to contain a settings.yaml file with the per-site settings. This needs to be the path inside the SITE_REPO where the settings.yaml is contained. In Akraino, a sample settings file for AWS and libvirt is provided. You can see it on aws/sample_settings.yaml and libvirt/sample_settings.yaml on the SITE_REPO. You should create your own settings specific for your deployment.
 
 ## How to deploy for AWS
 
@@ -67,7 +76,7 @@ the AWS account properly:
 
 There are two different footprints for AWS: 1 master/1 worker, and 3 masters/3 workers. Makefile needs to be called with:
 
-    make deploy CREDENTIALS=git@github.com:<git_user>/akraino-secrets.git SITE_REPO=git::https://gerrit.akraino.org/r/kni/templates.git SETTINGS_PATH=aws/sample_settings.yaml BASE_REPO=git::https://gerrit.akraino.org/r/kni/templates.git BASE_PATH=[aws/1-node|aws/3-node]
+    make deploy CREDENTIALS=git@github.com:<git_user>/akraino-secrets.git BASE_REPO=git::https://gerrit.akraino.org/r/kni/templates.git BASE_PATH=[aws/1-node | aws/3-node] SITE_REPO=git::https://gerrit.akraino.org/r/kni/templates.git SETTINGS_PATH=aws/sample_settings.yaml
 
 The file will look like:
 
@@ -82,11 +91,10 @@ The file will look like:
       AWSRegion: "<aws_region_to_deploy>"
 
 Where:
-- `<base_domain>` is the DNS zone matching with the one created on Route53
-- `<cluster_name>` is the name you are going to give to the cluster
-- `<aws_region_to_deploy>` is the region where you want your cluster to deploy
-
-SETTINGS can be a path to local file, or an url, will be queried with curl.
+- baseDomain: DNS zone matching with the one created on Route53
+- clusterName: name you are going to give to the cluster
+- AWSRegion: region where you want your cluster to deploy
+- The other values (clusterCIDR, clusterSubnetLength, machineCIDR, serviceCIDR, SDNType) can be left with the defaults
 
 The make process will create the needed artifacts and will start the deployment of the specified cluster
 
