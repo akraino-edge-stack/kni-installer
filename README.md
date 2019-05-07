@@ -99,11 +99,16 @@ into Master Nodes` section from the following document:
 
 ## How to deploy for Libvirt
 
-First of all, we need to prepare a host in order to configure libvirt, iptables, permissions, etc. So far this is a manual process:
+First of all, we need to prepare a host in order to configure libvirt, iptables, permissions, etc. 
+This repository contains a bash script that will prepare the host for you.
+
+	source utils/prep_host.sh
+
+The official documentation that describes these changes can be found in the following link:
 
 [https://github.com/openshift/installer/blob/master/docs/dev/libvirt-howto.md](https://github.com/openshift/installer/blob/master/docs/dev/libvirt-howto.md)
 
-Unfortunately, Libvirt is only for development purposes from the OpenShift perspective, so the binary is not compiled with the libvirt bits by default. The user will have to compile it by his/her own version with libvirt enabled. In order to build a binary, please look at section `Building and consuming your own installer`.
+Unfortunately, Libvirt is only for development purposes from the OpenShift perspective, so the binary is not compiled with the libvirt bits by default. The user will have to compile it by his/her own version with libvirt enabled. In order to build a binary, please look at section `Building and consuming your own installer`. As a summary, doing `make binary` will compile openshift-installer binay with libvirt support.
 
 There are two different footprints for libvirt: 1 master/1 worker, and 3 masters/3 workers. Makefile needs to be called with:
 
@@ -128,9 +133,9 @@ Where:
 
 The rest of the options are exactly the same as in an AWS deployment.
 
-**Temporary workaround**
+There is a recording of the deployment of a Libvirt blueprint with 1 master and 1 worker. Please, see the following link to watch it:
 
-Currently the installer is failing when adding console to the cluster for libvirt. In order to make it work, please follow instructions on [https://github.com/openshift/installer/pull/1371](https://github.com/openshift/installer/pull/1371).
+[https://www.youtube.com/watch?v=3mDb1cba8uU](https://www.youtube.com/watch?v=3mDb1cba8uU)
 
 ## How to use the cluster
 
