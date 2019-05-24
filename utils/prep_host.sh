@@ -68,7 +68,7 @@ EOF
     dnsmasqconf=/etc/NetworkManager/dnsmasq.d/openshift.conf
     if ! [ -f "${dnsmasqconf}" ]; then
         echo server=/tt.testing/192.168.126.1 | sudo tee "${dnsmasqconf}"
-        echo address=/apps.tt.testing/192.168.126.51 | sudo tee -a "${dnsmasqconf}"
+        echo address=/.apps.tt.testing/192.168.126.51 | sudo tee -a "${dnsmasqconf}"
         dnschanged=1
     fi
     if [ -n "$dnschanged" ]; then
