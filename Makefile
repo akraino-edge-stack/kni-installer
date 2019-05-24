@@ -6,6 +6,7 @@ GONAME="kni-edge-installer"
 BUILDDIR = $(shell pwd)/build
 INSTALLER_GIT_REPO = github.com/openshift/installer
 RHCOS_VERSION = "maipo"
+export PATH:=${HOME}/go/bin:${PATH}
 
 ifndef INSTALLER_PATH
 override INSTALLER_PATH = https://github.com/openshift/installer/releases/download/v0.16.1/openshift-install-linux-amd64
@@ -42,7 +43,11 @@ clean:
 	@echo "Destroying previous cluster"
 	@./bin/$(GONAME) clean --build_path $(BUILDDIR)
 
-deploy:
+dependencies:
+	@echo "Installing dependencies"
+	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go get sigs.k8s.io/kustomize
+
+deploy: dependencies
 	@echo "Launching cluster deployment bin/$(GONAME)"
 	@./bin/$(GONAME) generate --installer_path $(INSTALLER_PATH) --build_path $(BUILDDIR) --base_repository $(BASE_REPO) --base_path $(BASE_PATH) --secrets_repository $(CREDENTIALS) --site_repository $(SITE_REPO) --settings_path $(SETTINGS_PATH) --master_memory_mb $(MASTER_MEMORY_MB) --ssh_key_path $(SSH_KEY_PATH)
 
