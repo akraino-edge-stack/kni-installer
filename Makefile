@@ -46,13 +46,14 @@ clean:
 dependencies:
 	@echo "Installing dependencies"
 	@./utils/install_dependencies.sh
-	@wget -A "openshift-client-linux-4*\.tar\.gz" -r -np -nc -nd -l1 --no-check-certificate -e robots=off https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/ -P /tmp/
-	@sudo tar -xvf /tmp/openshift-client-linux-4*.tar.gz -C /usr/local/bin/ oc
-	@rm -f /tmp/openshift-client-linux-4*.tar.gz
 
 deploy: dependencies
 	@echo "Launching cluster deployment bin/$(GONAME)"
 	@./bin/$(GONAME) generate --installer_path $(INSTALLER_PATH) --build_path $(BUILDDIR) --base_repository $(BASE_REPO) --base_path $(BASE_PATH) --secrets_repository $(CREDENTIALS) --site_repository $(SITE_REPO) --settings_path $(SETTINGS_PATH) --master_memory_mb $(MASTER_MEMORY_MB) --ssh_key_path $(SSH_KEY_PATH)
+	$(MAKE) workloads
+
+workloads:
+	#@./bin/$(GONAME) workloads --site_repository $(SITE_REPO)
 
 images:
 	@echo "Launching image generation"
