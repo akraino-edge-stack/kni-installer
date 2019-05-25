@@ -28,6 +28,10 @@ ifndef SSH_KEY_PATH
 override SSH_KEY_PATH = "${HOME}/.ssh/id_rsa"
 endif
 
+ifndef CLUSTER_CREDENTIALS
+override CLUSTER_CREDENTIALS="$(shell pwd)/build/auth/kubeconfig"
+endif
+
 all: watch
 
 binary:
@@ -53,7 +57,7 @@ deploy: dependencies
 	$(MAKE) workloads
 
 workloads:
-	#@./bin/$(GONAME) workloads --site_repository $(SITE_REPO)
+	@./bin/$(GONAME) workloads --site_repository $(SITE_REPO) --cluster_credentials $(CLUSTER_CREDENTIALS)
 
 images:
 	@echo "Launching image generation"
