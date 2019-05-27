@@ -26,7 +26,7 @@ import (
 )
 
 // generateWorkloads will run kustomize and apply the generated workloads on the cluster
-func generateWorkloads(siteRepository string, buildPath string, clusterCredentials string) {
+func generateWorkloads(siteRepository string, buildPath string, clusterCredentials string, workloadType string) {
 	// Clone the site repository
 	log.Println("Cloning the site repository")
 	siteBuildPath := fmt.Sprintf("%s/site", buildPath)
@@ -37,8 +37,8 @@ func generateWorkloads(siteRepository string, buildPath string, clusterCredentia
 	}
 
 	// apply kustomize on the given path
-	log.Println("Generating workloads")
-	workloadsPath := fmt.Sprintf("%s/workloads", siteBuildPath)
+	log.Println(fmt.Sprintf("Generating %s", workloadType))
+	workloadsPath := fmt.Sprintf("%s/%s", siteBuildPath, workloadType)
 	cmd := exec.Command("kustomize", "build", workloadsPath)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -91,9 +91,10 @@ var workloadsCmd = &cobra.Command{
 		}
 
 		clusterCredentials, _ := cmd.Flags().GetString("cluster_credentials")
+		workloadType, _ := cmd.Flags().GetString("workload_type")
 
 		// start generation process
-		generateWorkloads(siteRepository, buildPath, clusterCredentials)
+		generateWorkloads(siteRepository, buildPath, clusterCredentials, workloadType)
 	},
 }
 
@@ -104,5 +105,7 @@ func init() {
 	workloadsCmd.MarkFlagRequired("site_repository")
 	workloadsCmd.Flags().StringP("cluster_credentials", "", "", "The credentials to use to access the cluster")
 	workloadsCmd.MarkFlagRequired("cluster_credentials")
+	workloadsCmd.Flags().StringP("workload_type", "", "", "The type of workloads to execute")
+	workloadsCmd.MarkFlagRequired("workload_type")
 
 }

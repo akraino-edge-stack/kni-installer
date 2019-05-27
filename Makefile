@@ -57,7 +57,8 @@ deploy: dependencies
 	$(MAKE) workloads
 
 workloads:
-	@./bin/$(GONAME) workloads --site_repository $(SITE_REPO) --cluster_credentials $(CLUSTER_CREDENTIALS)
+	@./bin/$(GONAME) workloads --site_repository $(SITE_REPO) --cluster_credentials $(CLUSTER_CREDENTIALS) --workload_type customizations
+	@./bin/$(GONAME) workloads --site_repository $(SITE_REPO) --cluster_credentials $(CLUSTER_CREDENTIALS) --workload_type workloads
 
 images:
 	@echo "Launching image generation"
