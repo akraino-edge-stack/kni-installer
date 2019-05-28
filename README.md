@@ -9,6 +9,11 @@ This is needed to have download access to the OpenShift installer artifacts.
 After that, you will need to download the Pull Secret from
 [https://cloud.openshift.com/clusters/install](https://cloud.openshift.com/clusters/install) - Step 4: Deploy the Cluster
 
+## Build System Requirements
+
+Software: gcc,git,go
+Hardware: support of nested virtualization needed
+
 ## How to build
 
 First the `kni-edge-installer` binary needs to be produced. For that you just execute make with the following syntax:
