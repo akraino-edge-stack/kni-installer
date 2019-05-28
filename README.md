@@ -9,6 +9,11 @@ This is needed to have download access to the OpenShift installer artifacts.
 After that, you will need to download the Pull Secret from
 [https://cloud.openshift.com/clusters/install](https://cloud.openshift.com/clusters/install) - Step 4: Deploy the Cluster
 
+## Build System Requirements
+
+Software: gcc,git,go
+
+
 ## How to build
 
 First the `kni-edge-installer` binary needs to be produced. For that you just execute make with the following syntax:
@@ -99,6 +104,7 @@ into Master Nodes` section from the following document:
 
 ## How to deploy for Libvirt
 
+Hardware: support of nested virtualization needed
 First of all, we need to prepare a host in order to configure libvirt, iptables, permissions, etc.
 This repository contains a bash script that will prepare the host for you.
 
