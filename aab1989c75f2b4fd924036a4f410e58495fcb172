@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "85b60d15_fe8e7f51",
+        "filename": "README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-05-29T07:39:19Z",
+      "side": 1,
+      "message": "Actually the support of nested virtualization is only needed in the case of libvirt. Can you move to that section?",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 8
+      },
+      "revId": "aab1989c75f2b4fd924036a4f410e58495fcb172",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    }
+  ]
+}
