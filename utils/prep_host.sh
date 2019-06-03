@@ -28,10 +28,10 @@ prerequisites()
     sudo systemctl restart libvirtd
 
     # Add Iptables rule
-    iptables -I INPUT -p tcp -s 192.168.126.0/24 -d 192.168.122.1 --dport 16509 -j ACCEPT -m comment --comment "Allow insecure libvirt clients"
+    sudo iptables -I INPUT -p tcp -s 192.168.126.0/24 -d 192.168.122.1 --dport 16509 -j ACCEPT -m comment --comment "Allow insecure libvirt clients"
 
     # Get active Firewall zone option
-    systemctl is-active firewalld
+    sudo systemctl is-active firewalld
     if [ $? -ne 0 ]
     then
         echo "Your system doesn't have firewalld service running"
