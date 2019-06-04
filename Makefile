@@ -4,6 +4,7 @@ GOFILES=$(wildcard *.go)
 GONAME="kni-edge-installer"
 
 BUILDDIR = $(shell pwd)/build
+BINDIR = $(shell pwd)/bin
 INSTALLER_GIT_REPO = github.com/openshift/installer
 RHCOS_VERSION = "maipo"
 export PATH:=${HOME}/go/bin:${PATH}
@@ -37,7 +38,7 @@ all: watch
 binary:
 	@echo
 	@echo "Building installer binary"
-	@./bin/$(GONAME) binary --build_path ${BUILDDIR} --installer_repository ${INSTALLER_GIT_REPO} --installer_tag ${INSTALLER_GIT_TAG}
+	@./bin/$(GONAME) binary --bin_path ${BINDIR} --installer_repository ${INSTALLER_GIT_REPO} --installer_tag ${INSTALLER_GIT_TAG}
 
 build:
 	@echo "Building kni-edge-installer with $(GOPATH) to ./bin"

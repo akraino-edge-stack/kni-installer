@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -28,7 +27,7 @@ import (
 )
 
 // BuildBinary is downloading the installer repo and building it
-func BuildBinary(buildPath string, installerRepo string, installerTag string) {
+func BuildBinary(binPath string, installerRepo string, installerTag string) {
 	repoURL := installerRepo
 	if installerTag != "" {
 		repoURL = fmt.Sprintf("%s?ref=%s", repoURL, installerTag)
@@ -67,13 +66,13 @@ func BuildBinary(buildPath string, installerRepo string, installerTag string) {
 	log.Println(stdBuffer.String())
 
 	// copy the generated binary to the build directory
-	cmd = exec.Command("cp", fmt.Sprintf("%s/bin/openshift-install", installerPath), buildPath)
+	cmd = exec.Command("cp", fmt.Sprintf("%s/bin/openshift-install", installerPath), binPath)
 	err = cmd.Run()
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Error copying installer to buid path: %s", err))
 		os.Exit(1)
 	}
-	log.Println(fmt.Sprintf("Installer is available on %s/openshift-install", buildPath))
+	log.Println(fmt.Sprintf("Installer is available on %s/openshift-install", binPath))
 
 }
 
@@ -88,19 +87,10 @@ var binaryCmd = &cobra.Command{
 		installerRepo, _ := cmd.Flags().GetString("installer_repository")
 		installerTag, _ := cmd.Flags().GetString("installer_tag")
 
-		// Check if build path exists, create if not
-		buildPath, _ := cmd.Flags().GetString("build_path")
-		if len(buildPath) == 0 {
-			// will generate a temporary directory
-			buildPath, _ = ioutil.TempDir("/tmp", "kni")
-		} else {
-			// remove if exists, recreate
-			os.RemoveAll(buildPath)
-			os.MkdirAll(buildPath, 0775)
-		}
-
-		BuildBinary(buildPath, installerRepo, installerTag)
-
+		// Check if bin path exists, create if not
+		binPath, _ := cmd.Flags().GetString("bin_path")
+		os.Remove(binPath + "/openshift-install")
+		BuildBinary(binPath, installerRepo, installerTag)
 	},
 }
 
@@ -111,6 +101,6 @@ func init() {
 	binaryCmd.MarkFlagRequired("installer_repository")
 	binaryCmd.Flags().StringP("installer_tag", "", "master", "Specific tag for the openshift installer repository")
 	binaryCmd.MarkFlagRequired("installer_tag")
-	binaryCmd.Flags().StringP("build_path", "", "", "Directory to use as build path. If that not exists, the installer will generate a default directory")
+	binaryCmd.Flags().StringP("bin_path", "", "", "Directory to use as build path.")
 
 }
