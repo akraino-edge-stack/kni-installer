@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b7560697_31b6df39",
+        "filename": "Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 154
+      },
+      "writtenOn": "2019-06-11T15:42:57Z",
+      "side": 1,
+      "message": "If you want it to be 16GB, this should be 16384MB. Just to be precise.",
+      "range": {
+        "startLine": 21,
+        "startChar": 29,
+        "endLine": 21,
+        "endChar": 35
+      },
+      "revId": "dd50d4d27e29ccb3a8deed4e72e3b40eea9d9fd4",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    }
+  ]
+}
