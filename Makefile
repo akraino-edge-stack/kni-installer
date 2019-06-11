@@ -18,7 +18,7 @@ override INSTALLER_GIT_TAG = "v0.16.1"
 endif
 
 ifndef MASTER_MEMORY_MB
-override MASTER_MEMORY_MB = "11192"
+override MASTER_MEMORY_MB = "16000"
 endif
 
 ifndef RELEASES_URL
