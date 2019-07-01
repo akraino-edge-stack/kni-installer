@@ -13,6 +13,7 @@ ifndef INSTALLER_PATH
 override INSTALLER_PATH = https://github.com/openshift/installer/releases/download/v0.16.1/openshift-install-linux-amd64
 endif
 
+export INSTALLER_GIT_TAG
 ifndef INSTALLER_GIT_TAG
 override INSTALLER_GIT_TAG = "v0.16.1"
 endif
@@ -38,6 +39,7 @@ all: watch
 binary:
 	@echo
 	@echo "Building installer binary"
+	echo export INSTALLER_GIT_TAG=${INSTALLER_GIT_TAG} > /tmp/ocp_installer_version
 	@./bin/$(GONAME) binary --bin_path ${BINDIR} --installer_repository ${INSTALLER_GIT_REPO} --installer_tag ${INSTALLER_GIT_TAG}
 
 build:
