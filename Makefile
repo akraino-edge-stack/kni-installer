@@ -1,7 +1,7 @@
 GOPATH=$(shell pwd)/vendor:$(shell pwd):"${HOME}/go"
 GOBIN=$(shell pwd)/bin
 GOFILES=$(wildcard *.go)
-GONAME="kni-edge-installer"
+GONAME="knictl"
 
 BUILDDIR = $(shell pwd)/build
 BINDIR = $(shell pwd)/bin
@@ -43,7 +43,7 @@ binary:
 	@./bin/$(GONAME) binary --bin_path ${BINDIR} --installer_repository ${INSTALLER_GIT_REPO} --installer_tag ${INSTALLER_GIT_TAG}
 
 build:
-	@echo "Building kni-edge-installer with $(GOPATH) to ./bin"
+	@echo "Building knictl with $(GOPATH) to ./bin"
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -o bin/$(GONAME) $(GOFILES)
 
 clean:

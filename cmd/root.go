@@ -25,7 +25,7 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "kni-edge-installer",
+	Use:   "knictl",
 	Short: "This app will execute deployment and updates of KNI edge clusters",
 	Long: `Given a set of declarative configurations, the following application
     will perform deployment of Kubernetes clusters based on it.`,
@@ -42,5 +42,3 @@ func Execute() {
 
 func init() {
 }
-
-

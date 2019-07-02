@@ -15,11 +15,11 @@ Software: gcc,git,go
 
 ## How to build
 
-First the `kni-edge-installer` binary needs to be produced. For that you just execute make with the following syntax:
+First the `knictl` binary needs to be produced. For that you just execute make with the following syntax:
 
     make build
 
-This will produce the `kni-edge-installer` binary that can be used to deploy a site.
+This will produce the `knictl` binary that can be used to deploy a site.
 
 ## How to deploy
 
