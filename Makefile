@@ -63,16 +63,11 @@ workloads:
 	@./bin/$(GONAME) workloads --site_repository $(SITE_REPO) --cluster_credentials $(CLUSTER_CREDENTIALS) --workload_type customizations
 	@./bin/$(GONAME) workloads --site_repository $(SITE_REPO) --cluster_credentials $(CLUSTER_CREDENTIALS) --workload_type workloads
 
-images:
-	@echo "Launching image generation"
-	@./bin/$(GONAME) images --build_path $(BUILDDIR) --version $(RHCOS_VERSION) --releases_url $(RELEASES_URL)
-
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  binary to generate a new openshift-install binary"
 	@echo "  build to produce the installer binary"
 	@echo "  clean to destroy a previously created cluster and remove build contents"
 	@echo "  deploy CREDENTIALS=<github_secret_repo> BASE_REPO=<github_manifests_repo> BASE_PATH=<subpath_on_manifests_repo> SITE_REPO=<github_site_repo> SETTINGS_PATH=<subpath_on_site_repo> SSH_KEY_PATH=<path_to_id_rsa>"
-	@echo "  images to download baremetal images"
 
 .PHONY: build get install run watch start stop restart clean
