@@ -1,0 +1,7 @@
+export PROV_INTF=
+export BM_INTF=
+export EXT_INTF=
+export BSTRAP_BM_MAC=
+export MASTER_BM_MAC=
+export WORKER_BM_MAC=
+export PULL_SECRET_FILE=
