@@ -44,7 +44,7 @@ binary:
 
 build:
 	@echo "Building knictl with $(GOPATH) to ./bin"
-	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -o bin/$(GONAME) $(GOFILES)
+	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -o ./$(GONAME) $(GOFILES)
 
 clean:
 	@echo "Destroying previous cluster"

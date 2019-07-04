@@ -6,10 +6,13 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"gerrit.akraino.org/kni/installer/pkg/requirements"
+	"gerrit.akraino.org/kni/installer/pkg/utils"
 	getter "github.com/hashicorp/go-getter"
 	"gopkg.in/yaml.v2"
 )
@@ -49,12 +52,10 @@ func (s Site) DownloadSite() {
 
 }
 
-// using the downloaded site content, fetches (and builds) the specified requirements
-func (s Site) FetchRequirements() {
-	log.Println(fmt.Sprintf("Downloading requirements for %s", s.siteName))
+// retrieves the given profile used in a site
+func (s Site) GetProfileFromSite() (string, string) {
 	siteBuildPath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
 
-	// searches for file containing the profile of the blueprint
 	profileFile := fmt.Sprintf("%s/site/00_install-config/kustomization.yaml", siteBuildPath)
 
 	if _, err := os.Stat(profileFile); err == nil {
@@ -79,38 +80,137 @@ func (s Site) FetchRequirements() {
 		profileName := profileBits[len(profileBits)-2]
 		profilePath := strings.TrimSuffix(profileRepo, profileBits[len(profileBits)-1])
 
-		profileBuildPath := fmt.Sprintf("%s/%s", siteBuildPath, profileName)
-		log.Println(fmt.Sprintf("Downloading profile repo from %s into %s", profilePath, profileBuildPath))
-		client := &getter.Client{Src: profilePath, Dst: profileBuildPath, Mode: getter.ClientModeAny}
-		err = client.Get()
-		if err != nil {
-			log.Fatal(fmt.Sprintf("Error cloning profile repository: %s", err))
-		}
-
-		// read yaml from requirements and start fetching the bits
-		requirementsFile := fmt.Sprintf("%s/requirements.yaml", profileBuildPath)
-		file, err := os.Open(requirementsFile)
-		if err != nil {
-			log.Fatal("Error reading requirements file")
-			os.Exit(1)
-		}
-		defer file.Close()
-
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			requirementsLine := scanner.Text()
-
-			// requirements is composed of binary and source
-			requirementsBits := strings.SplitN(strings.TrimSpace(requirementsLine), ":", 2)
-			r := requirements.New(strings.TrimSpace(requirementsBits[0]), strings.TrimSpace(requirementsBits[1]), fmt.Sprintf("%s/requirements", siteBuildPath))
-			r.FetchRequirement()
-		}
-
-		// remove profile folder
-		os.RemoveAll(profileBuildPath)
-
+		return profileName, profilePath
 	} else if os.IsNotExist(err) {
 		log.Fatal(fmt.Sprintf("File %s does not exist, exiting", profileFile))
 		os.Exit(1)
 	}
+
+	return "", ""
+}
+
+// using the downloaded site content, fetches (and builds) the specified requirements
+func (s Site) FetchRequirements() {
+	log.Println(fmt.Sprintf("Downloading requirements for %s", s.siteName))
+	siteBuildPath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
+
+	// searches for file containing the profile of the blueprint
+	profileName, profilePath := s.GetProfileFromSite()
+
+	profileBuildPath := fmt.Sprintf("%s/%s", siteBuildPath, profileName)
+	log.Println(fmt.Sprintf("Downloading profile repo from %s into %s", profilePath, profileBuildPath))
+	client := &getter.Client{Src: profilePath, Dst: profileBuildPath, Mode: getter.ClientModeAny}
+	err := client.Get()
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error cloning profile repository: %s", err))
+	}
+
+	// read yaml from requirements and start fetching the bits
+	requirementsFile := fmt.Sprintf("%s/requirements.yaml", profileBuildPath)
+	file, err := os.Open(requirementsFile)
+	if err != nil {
+		log.Fatal("Error reading requirements file")
+		os.Exit(1)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		requirementsLine := scanner.Text()
+
+		// requirements is composed of binary and source
+		requirementsBits := strings.SplitN(strings.TrimSpace(requirementsLine), ":", 2)
+		r := requirements.New(strings.TrimSpace(requirementsBits[0]), strings.TrimSpace(requirementsBits[1]), fmt.Sprintf("%s/requirements", siteBuildPath))
+		r.FetchRequirement()
+	}
+
+	// remove profile folder
+	os.RemoveAll(profileBuildPath)
+
+}
+
+// using the downloaded site content, prepares the manifests for it
+func (s Site) PrepareManifests() {
+	siteBuildPath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
+	log.Println(fmt.Sprintf("Preparing manifests for %s", s.siteName))
+
+	// do the initial validation of pre-requisites
+	utils.ValidateRequirements(s.buildPath, s.siteName)
+	binariesPath := fmt.Sprintf("%s/requirements", siteBuildPath)
+
+	// retrieve profile
+	//profileName, profilePath := s.GetProfileFromSite()
+
+	// generate openshift-install manifests based on phase 00_install-config
+	finalSitePath := fmt.Sprintf("%s/generated_site", siteBuildPath)
+	if _, err := os.Stat(finalSitePath); os.IsNotExist(err) {
+		os.Mkdir(finalSitePath, 0755)
+	}
+
+	// retrieve executable path to inject env var
+	ex, err := os.Executable()
+	if err != nil {
+		log.Fatal("Error retrieving the current running path")
+		os.Exit(1)
+	}
+	exPath := filepath.Dir(ex)
+
+	cmd := exec.Command(fmt.Sprintf("%s/kustomize", binariesPath), "build", "--enable_alpha_plugins", "--reorder", "none", fmt.Sprintf("%s/site/00_install-config", siteBuildPath))
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, fmt.Sprintf("XDG_CONFIG_HOME=%s/plugins", exPath))
+	out, err := cmd.Output()
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error generating openshift-install manifests: %s", err))
+		os.Exit(1)
+	}
+
+	// check if we have any content and write to the target file
+	if len(out) > 0 {
+		err = ioutil.WriteFile(fmt.Sprintf("%s/install-config.yaml", finalSitePath), out, 0644)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("Error writing final install-config file: %s", err))
+			os.Exit(1)
+		}
+
+	} else {
+		log.Fatal("Error, kustomize did not return any content")
+		os.Exit(1)
+	}
+
+	// now generate the manifests
+	cmd = exec.Command(fmt.Sprintf("%s/openshift-install", binariesPath), "create", "manifests", fmt.Sprintf("--dir=%s", finalSitePath), "--log-level", "debug")
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error creating manifests: %s", err))
+		os.Exit(1)
+	}
+
+	// iterate over all the generated files and create a kustomization file
+	f, err := os.Create(fmt.Sprintf("%s/kustomization.yaml", finalSitePath))
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error creating kustomization file: %s", err))
+		os.Exit(1)
+	}
+	defer f.Close()
+
+	filePatterns := []string{fmt.Sprintf("%s/manifests/*.yaml", finalSitePath), fmt.Sprintf("%s/manifests/*.yml", finalSitePath), fmt.Sprintf("%s/openshift/*.yaml", finalSitePath)}
+	for _, filePattern := range filePatterns {
+		files, err := filepath.Glob(filePattern)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("Error reading manifest files: %s", err))
+			os.Exit(1)
+		}
+
+		// iterate over each file, remove the absolute path and write it
+		for _, fileName := range files {
+			strippedName := strings.TrimPrefix(fileName, fmt.Sprintf("%s/", finalSitePath))
+			_, err := f.WriteString(fmt.Sprintf("- %s\n", strippedName))
+			if err != nil {
+				log.Fatal(fmt.Sprintf("Error writing kustomization file: %s", err))
+				os.Exit(1)
+			}
+		}
+	}
+
 }
