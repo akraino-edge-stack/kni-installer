@@ -45,9 +45,9 @@ func (r Requirement) FetchRequirementFolder() {
 	err = filepath.Walk(extractDir, func(path string, info os.FileInfo, err error) error {
 		if (info.Name() == r.binaryName || info.Name() == alternativeBinaryName) && !info.IsDir() {
 			// we found the binary, move it. Give exec perms as well
-            finalName := fmt.Sprintf("%s/%s", r.buildPath, r.binaryName)
-			os.Rename(path, finalName)
-            os.Chmod(finalName, 0755)
+            finalBinary := fmt.Sprintf("%s/%s", r.buildPath, r.binaryName)
+			os.Rename(path, finalBinary)
+            os.Chmod(finalBinary, 0755)
 			os.RemoveAll(extractDir)
 			return nil
 		}
