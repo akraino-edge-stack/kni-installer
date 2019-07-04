@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# This is a simple kustomize transformer plugin that allows
+# injecting configuration for a site into the blueprint.
+# It's current purpose is to inject the pull secret and ssh public key
+# into the site config such that it doesn't have to be stored in git iwth the
+# blueprint. Instead, it's taken from the WORK_DIR (but could eventually be
+# retrieved from a k8s secret or a vault instead).
+# The same mechanism could be used in the future to template in more site
+# configuration parameters for which a purist "kustomization" is too cumbersome.
+
+# set -x
+set -e
+
+# Skip the config file name argument.
+shift
+
+PULL_SECRET=$(cat ${HOME}/.kni/pull-secret.json)
+SSH_PUB_KEY=$(cat ${HOME}/.kni/id_rsa.pub)
+
+cat - | sed \
+    -e "s|PULL_SECRET|\'${PULL_SECRET}\'|" \
+    -e "s|SSH_PUB_KEY|${SSH_PUB_KEY}|"

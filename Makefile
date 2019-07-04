@@ -43,8 +43,9 @@ binary:
 	@./bin/$(GONAME) binary --bin_path ${BINDIR} --installer_repository ${INSTALLER_GIT_REPO} --installer_tag ${INSTALLER_GIT_TAG}
 
 build:
-	@echo "Building knictl with $(GOPATH) to ./bin"
-	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -o bin/$(GONAME) $(GOFILES)
+	@echo "Building knictl with $(GOPATH) to knictl.tar.gz"
+	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -o $(GONAME) $(GOFILES)
+	tar -czvf knictl.tar.gz $(GONAME) plugins utils
 
 clean:
 	@echo "Destroying previous cluster"
