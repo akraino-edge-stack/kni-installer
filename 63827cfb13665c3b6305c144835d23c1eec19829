@@ -1,0 +1,7 @@
+Code-Review+2: Frank Zdarsky <fzdarsky@redhat.com>
+Verified+1: Frank Zdarsky <fzdarsky@redhat.com>
+Submitted-by: Yolanda Robla Mota <yroblamo@redhat.com>
+Submitted-at: Fri, 05 Jul 2019 09:50:24 +0000
+Reviewed-on: https://gerrit.akraino.org/r/c/kni/installer/+/1123
+Project: kni/installer
+Branch: refs/heads/master
