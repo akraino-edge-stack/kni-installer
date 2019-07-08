@@ -63,8 +63,9 @@ ifup $BM_INTF
 
 mkdir -p ~/dev/test1
 mkdir -p ~/dev/upi-dnsmasq/$PROV_INTF
-mkdip ~/dev/upi-dnsmasq/$BM_INTF
+mkdir ~/dev/upi-dnsmasq/$BM_INTF
 mkdir ~/dev/scripts
+mkdir -p ~/dev/containers/haproxy
 sudo mkdir /etc/matchbox
 mkdir ~/.matchbox
 sudo mkdir -p /var/lib/matchbox/assets
@@ -115,13 +116,13 @@ popd
 ### Install Git ###
 ###-------------###
 
-# TODO: How without using yum?
+sudo yum install -y git
 
 ###----------------###
 ### Install podman ###
 ###----------------###
 
-# TODO: How without using yum?
+sudo yum install -y podman
 
 ###----------------###
 ### Install Golang ###
@@ -139,11 +140,13 @@ curl -O http://boot.ipxe.org/ipxe.efi
 curl -O http://boot.ipxe.org/undionly.kpxe
 popd
 
-###------------------------------###
-### Create HAProxy configuration ###
-###------------------------------###
+###-----------------------------------------###
+### Create HAProxy configuration and assets ###
+###-----------------------------------------###
 
-cat <<EOF > /etc/haproxy/haproxy.cfg
+pushd ~/dev/containers/haproxy
+
+cat <<EOF > haproxy.cfg
 #---------------------------------------------------------------------
 # Global settings
 #---------------------------------------------------------------------
@@ -228,13 +231,34 @@ backend https-main
     server worker-0  192.168.111.50:443 check
 EOF
 
+cat <<EOF > Dockerfile
+FROM haproxy:1.7
+COPY haproxy.cfg /usr/local/etc/haproxy/haproxy.cfg
+
+ENV HAPROXY_USER haproxy
+
+EXPOSE 80
+EXPOSE 443
+EXPOSE 6443
+EXPOSE 22623
+
+RUN groupadd --system ${HAPROXY_USER} && \
+  useradd --system --gid ${HAPROXY_USER} ${HAPROXY_USER} && \
+  mkdir --parents /var/lib/${HAPROXY_USER} && \
+  chown -R ${HAPROXY_USER}:${HAPROXY_USER} /var/lib/${HAPROXY_USER}
+
+CMD ["haproxy", "-db", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
+EOF
+
+podman build .
+popd
+
 ###-------------------------###
 ### Start HAProxy container ###
 ###-------------------------###
 
-# TODO
-# Something like this?  Needs to be able to use haproxy:haproxy user and group
-# podman run -d --net=host -v /etc/haproxy:/etc/haproxy:Z,ro docker.io/haproxy -f /etc/haproxy/haproxy.cfg -Ds 
+HAPROXY_IMAGE_ID=`podman images | grep -v REPOSITORY | tail -1 | awk {'print $3'}`
+podman run -d --name haproxy --net=host -p 80:80 -p 443:443 -p 6443:6443 -p 22623:22623 $HAPROXY_IMAGE_ID -f /usr/local/etc/haproxy/haproxy.cfg
 
 ###-------------------------------------------###
 ### Create provisioning dnsmasq configuration ###
@@ -312,24 +336,32 @@ log-dhcp
 
 dhcp-no-override
 dhcp-authoritative
-dhcp-hostsfile=/root/dev/upi-dnsmasq/$BM_INTF/$BM_INTF.hostsfile
+dhcp-hostsfile=/var/run/dnsmasq/$BM_INTF.hostsfile
 
 dhcp-leasefile=/var/run/dnsmasq/$BM_INTF.leasefile
 log-facility=/var/run/dnsmasq/$BM_INTF.log
 
 EOF
 
+# TODO: How do we generate the BM_INTF hostsfile?
+
 ###--------------------------------------###
 ### Start provisioning dnsmasq container ###
 ###--------------------------------------###
 
-# TODO
+podman run -d --name dnsmasq --net=host -v /var/run/dnsmasq:/var/run/dnsmasq:Z \
+-v ~/dev/upi-dnsmasq/$PROV_INTF:/etc/dnsmasq.d:Z \
+--expose=53 --expose=53/udp --expose=67 --expose=67/udp --expose=69 --expose=69/udp \
+--cap-add=NET_ADMIN quay.io/poseidon/dnsmasq --conf-file=/etc/dnsmasq.d/dnsmasq.conf -u root -d -q
 
 ###-----------------------------------###
 ### Start baremetal dnsmasq container ###
 ###-----------------------------------###
 
-# TODO
+podman run -d --name dnsmasq --net=host -v /var/run/dnsmasq:/var/run/dnsmasq:Z \
+-v ~/dev/upi-dnsmasq/$BM_INTF:/etc/dnsmasq.d:Z \
+--expose=53 --expose=53/udp --expose=67 --expose=67/udp --expose=69 --expose=69/udp \
+--cap-add=NET_ADMIN quay.io/poseidon/dnsmasq --conf-file=/etc/dnsmasq.d/dnsmasq.conf -u root -d -q
 
 ###--------------------###
 ### Configure matchbox ###
