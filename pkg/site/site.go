@@ -314,3 +314,36 @@ func (s Site) PrepareManifests() {
 	}
 
 }
+
+// using the site contents, applies the workloads on it
+func (s Site) ApplyWorkloads() {
+	siteBuildPath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
+
+	// check if we have the needed kubeconfig file
+	kubeconfigFile := fmt.Sprintf("%s/final_manifests/auth/kubeconfig", siteBuildPath)
+	binariesPath := fmt.Sprintf("%s/requirements", siteBuildPath)
+
+	if _, err := os.Stat(kubeconfigFile); err == nil {
+		out := utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
+		if string(out) != "" {
+			// now we can apply it
+			utils.ApplyKubectl(fmt.Sprintf("%s/kubectl", binariesPath), out, kubeconfigFile)
+		} else {
+			log.Println(fmt.Sprintf("No manifests found for %s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
+		}
+
+		out = utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/03_services", siteBuildPath))
+		if string(out) != "" {
+			// now we can apply it
+			utils.ApplyKubectl(fmt.Sprintf("%s/kubectl", binariesPath), out, kubeconfigFile)
+		} else {
+			log.Println(fmt.Sprintf("No manifests found for %s/blueprint/sites/site/03_services", siteBuildPath))
+		}
+
+	} else {
+		// no kubeconfig, abort the workload creation
+		log.Fatal("Error, no kubeconfig file found")
+		os.Exit(1)
+	}
+
+}
