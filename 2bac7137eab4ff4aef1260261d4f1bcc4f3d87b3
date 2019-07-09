@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5720739d_579daac1",
+        "filename": "cmd/prepare_manifests.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 154
+      },
+      "writtenOn": "2019-07-09T09:57:39Z",
+      "side": 1,
+      "message": "Site is a mandatory flag. Don\u0027t you need to throw an exception in case of error? Or is it Cobra in charge of doing that in the code at the bottom?",
+      "range": {
+        "startLine": 33,
+        "startChar": 12,
+        "endLine": 33,
+        "endChar": 13
+      },
+      "revId": "2bac7137eab4ff4aef1260261d4f1bcc4f3d87b3",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a85168e0_a63b7687",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 154
+      },
+      "writtenOn": "2019-07-09T09:57:39Z",
+      "side": 1,
+      "message": "Maybe include a comment to clarify that the function generates a unique identifier based on the GKV (from K8s) + Name.",
+      "revId": "2bac7137eab4ff4aef1260261d4f1bcc4f3d87b3",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95e29075_a0c45db3",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 154
+      },
+      "writtenOn": "2019-07-09T09:57:39Z",
+      "side": 1,
+      "message": "What if metadata is not present on the map?",
+      "range": {
+        "startLine": 30,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 65
+      },
+      "revId": "2bac7137eab4ff4aef1260261d4f1bcc4f3d87b3",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e00fbd92_a2c3b312",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 154
+      },
+      "writtenOn": "2019-07-09T09:57:39Z",
+      "side": 1,
+      "message": "Why is there a conditional statement here? Or is this related to the metadata statement from above?",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 8
+      },
+      "revId": "2bac7137eab4ff4aef1260261d4f1bcc4f3d87b3",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "905f398f_8948f450",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 154
+      },
+      "writtenOn": "2019-07-09T09:57:39Z",
+      "side": 1,
+      "message": "If the values of all keys are always an empty string, maybe you need other structure than a map?",
+      "range": {
+        "startLine": 131,
+        "startChar": 6,
+        "endLine": 131,
+        "endChar": 32
+      },
+      "revId": "2bac7137eab4ff4aef1260261d4f1bcc4f3d87b3",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a7263c5_055485ec",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 154
+      },
+      "writtenOn": "2019-07-09T09:57:39Z",
+      "side": 1,
+      "message": "Same as above.",
+      "range": {
+        "startLine": 136,
+        "startChar": 5,
+        "endLine": 136,
+        "endChar": 34
+      },
+      "revId": "2bac7137eab4ff4aef1260261d4f1bcc4f3d87b3",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d6a0ff4_3d07523c",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 154
+      },
+      "writtenOn": "2019-07-09T09:57:39Z",
+      "side": 1,
+      "message": "why not using an absolute path if blueprints repo is always under $HOME/.kni/blueprints/sites/siteX ?",
+      "range": {
+        "startLine": 175,
+        "startChar": 4,
+        "endLine": 175,
+        "endChar": 104
+      },
+      "revId": "2bac7137eab4ff4aef1260261d4f1bcc4f3d87b3",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c19c66e4_5f7d6fa5",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 154
+      },
+      "writtenOn": "2019-07-09T09:57:39Z",
+      "side": 1,
+      "message": "Same, why not absolute paths?",
+      "range": {
+        "startLine": 241,
+        "startChar": 2,
+        "endLine": 241,
+        "endChar": 66
+      },
+      "revId": "2bac7137eab4ff4aef1260261d4f1bcc4f3d87b3",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    }
+  ]
+}
