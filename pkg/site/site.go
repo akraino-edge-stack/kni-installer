@@ -142,6 +142,44 @@ func (s Site) FetchRequirements() {
 
 }
 
+// writes an env file, that needs to be sourced before running cluster install
+func (s Site) WriteEnvFile() {
+	envContents := ""
+
+	// fist we check if release image override exists on site definition
+	siteBuildPath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
+	installYaml := fmt.Sprintf("%s/site/00_install-config/site-config.yaml", siteBuildPath)
+
+	var configFileObj map[interface{}]interface{}
+	b, err := ioutil.ReadFile(installYaml)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error reading site config file: %s", err))
+		os.Exit(1)
+	}
+
+	// parse the yaml and check for key value
+	err = yaml.Unmarshal(b, &configFileObj)
+	if err != nil {
+		log.Println(fmt.Sprintf("Error parsing manifest: %s", err))
+		os.Exit(1)
+	}
+
+	releaseImage, ok := configFileObj["config"].(map[interface{}]interface{})["releaseImageOverride"]
+	if ok {
+		// search for the releaseImageOverride key
+		envContents = fmt.Sprintf("%sexport OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE=%s\n", envContents, string(releaseImage.(string)))
+	}
+	envContents = fmt.Sprintf("%sexport TF_VAR_libvirt_master_memory=8192\n", envContents)
+	envContents = fmt.Sprintf("%sexport TF_VAR_libvirt_master_vcpu=4\n", envContents)
+
+	// write a profile.env in the siteBuildPath
+	err = ioutil.WriteFile(fmt.Sprintf("%s/profile.env", siteBuildPath), []byte(envContents), 0644)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error writing profile.env file: %s", err))
+		os.Exit(1)
+	}
+}
+
 // using the downloaded site content, prepares the manifests for it
 func (s Site) PrepareManifests() {
 	sitePath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)

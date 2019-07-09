@@ -47,6 +47,7 @@ var prepareManifestsCmd = &cobra.Command{
 
 		// define a site object and proceed with requirements fetch
 		s := site.NewWithName(siteName, buildPath)
+		s.WriteEnvFile()
 		s.PrepareManifests()
 	},
 }
