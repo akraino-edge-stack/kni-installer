@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 )
 
 // utility to validate pre-requisites for deploying
@@ -58,4 +59,41 @@ func ApplyKustomize(kustomizeBinary string, kustomizePath string) []byte {
 	}
 
 	return out
+}
+
+// utility to apply kubectl for a given output
+func ApplyKubectl(kubectlBinary string, kubectlContent []byte, kubeconfigPath string) {
+	modified := false
+	var out []byte
+	var err string
+	for i := 1; i <= 10; i++ {
+		cmd := exec.Command(kubectlBinary, "apply", "-f", "-")
+
+		cmd.Env = os.Environ()
+		cmd.Env = append(cmd.Env, fmt.Sprintf("KUBECONFIG_PATH=%s", kubeconfigPath))
+
+		// add output to stdin
+		stdin, err := cmd.StdinPipe()
+		stdin.Write(kubectlContent)
+		stdin.Close()
+
+		out, err = cmd.Output()
+
+		// show output for user to see progress
+		log.Println(string(out))
+
+		if err == nil {
+			// it is ok, stop the loop
+			modified = true
+			break
+		} else {
+			// sleep and retry
+			time.Sleep(60 * time.Second)
+		}
+	}
+
+	// if not modified, show error
+	if !modified {
+		log.Println(fmt.Sprintf("Error applying workloads: %s", err))
+	}
 }
