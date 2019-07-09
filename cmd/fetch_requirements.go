@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"gerrit.akraino.org/kni/installer/pkg/site"
@@ -24,13 +25,20 @@ import (
 
 // fetchRequirementsCmd represents the fetch_requirements command
 var fetchRequirementsCmd = &cobra.Command{
-	Use:              "fetch_requirements",
+	Use:              "fetch_requirements siteRepo [--build_path=<local_build_path>]",
 	Short:            "Command to fetch the requirements needed for a site",
 	Long:             ``,
 	TraverseChildren: true,
 	Run: func(cmd *cobra.Command, args []string) {
+		// we need to have at least site as first argument
+		var siteRepo string
+		if len(args) == 0 {
+			log.Fatal("Please specify site repository as first argument")
+			os.Exit(1)
+		} else {
+			siteRepo = args[0]
+		}
 		// retrieve config values and start fetching
-		siteRepo, _ := cmd.Flags().GetString("site")
 		buildPath, _ := cmd.Flags().GetString("build_path")
 		if len(buildPath) == 0 {
 			// will generate a temporary directory
@@ -47,8 +55,6 @@ var fetchRequirementsCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(fetchRequirementsCmd)
 
-	fetchRequirementsCmd.Flags().StringP("site", "", "", "Url/path for site repository. Can be in any go-getter compatible format")
-	fetchRequirementsCmd.MarkFlagRequired("site")
 	fetchRequirementsCmd.Flags().StringP("build_path", "", "", "Directory to use as build path. If that not exists, the installer will generate a default directory")
 
 }
