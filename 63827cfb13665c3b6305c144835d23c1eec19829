@@ -16,6 +16,24 @@
       "revId": "63827cfb13665c3b6305c144835d23c1eec19829",
       "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "752a6b80_b893d48a",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-09T11:49:17Z",
+      "side": 0,
+      "message": "I did because i got errors at some point if using string. I cannot remember which step but i was hitting a type problem. So i changed everything to interface...",
+      "parentUuid": "5a03de4b_52ea6e0c",
+      "revId": "63827cfb13665c3b6305c144835d23c1eec19829",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
     }
   ]
 }
