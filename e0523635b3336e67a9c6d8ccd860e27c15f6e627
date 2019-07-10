@@ -1,0 +1,331 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "87168705_8f604d8a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T11:38:33Z",
+      "side": 1,
+      "message": "This needs to be a message explaining the purpose of the change and with a bit of details of what the change is doing.",
+      "revId": "e0523635b3336e67a9c6d8ccd860e27c15f6e627",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7354b694_6865afb0",
+        "filename": "utils/prep_bm_host.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T11:38:33Z",
+      "side": 1,
+      "message": "For pull_secret, we are going to tell users to create it under $HOME/.kni/pull-secret.json . So you should not request an env var here, but check if the file is present there and error if not. Unless you want to accept this as an env var, and create the file as part of the process.",
+      "revId": "e0523635b3336e67a9c6d8ccd860e27c15f6e627",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1bfe95c_90f6234d",
+        "filename": "utils/prep_bm_host.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T11:38:33Z",
+      "side": 1,
+      "message": "do we assume that this is a fixed range? i guess people would have to configure depending on their network",
+      "range": {
+        "startLine": 36,
+        "startChar": 10,
+        "endLine": 36,
+        "endChar": 11
+      },
+      "revId": "e0523635b3336e67a9c6d8ccd860e27c15f6e627",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0670f2ef_7bcb573d",
+        "filename": "utils/prep_bm_host.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T11:38:33Z",
+      "side": 1,
+      "message": "same, i think this needs to be parameterized",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 6
+      },
+      "revId": "e0523635b3336e67a9c6d8ccd860e27c15f6e627",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "239c72e4_902e24f1",
+        "filename": "utils/prep_bm_host.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T11:38:33Z",
+      "side": 1,
+      "message": "gerrit does not like those extra spaces...",
+      "range": {
+        "startLine": 107,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 3
+      },
+      "revId": "e0523635b3336e67a9c6d8ccd860e27c15f6e627",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c408df5_56995fb3",
+        "filename": "utils/prep_bm_host.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T11:38:33Z",
+      "side": 1,
+      "message": "this bash is loooong. So i wonder if those bits, that are just static files, can be in another file/folder, and just do a cat on it",
+      "range": {
+        "startLine": 193,
+        "startChar": 0,
+        "endLine": 193,
+        "endChar": 3
+      },
+      "revId": "e0523635b3336e67a9c6d8ccd860e27c15f6e627",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "979ded35_7bf97b03",
+        "filename": "utils/prep_bm_host.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T11:38:33Z",
+      "side": 1,
+      "message": "same comment, about parameterization",
+      "range": {
+        "startLine": 258,
+        "startChar": 21,
+        "endLine": 258,
+        "endChar": 24
+      },
+      "revId": "e0523635b3336e67a9c6d8ccd860e27c15f6e627",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "157ea7cd_a4cbeb7a",
+        "filename": "utils/prep_bm_host.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T11:38:33Z",
+      "side": 1,
+      "message": "at some point, we need to make it flexible, for 1/3 masters",
+      "range": {
+        "startLine": 259,
+        "startChar": 11,
+        "endLine": 259,
+        "endChar": 17
+      },
+      "revId": "e0523635b3336e67a9c6d8ccd860e27c15f6e627",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9d013bb_91dba735",
+        "filename": "utils/prep_bm_host.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T11:38:33Z",
+      "side": 1,
+      "message": "same, at some point we need to figure how to deal with multiple workers",
+      "range": {
+        "startLine": 270,
+        "startChar": 4,
+        "endLine": 270,
+        "endChar": 10
+      },
+      "revId": "e0523635b3336e67a9c6d8ccd860e27c15f6e627",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "017f992e_5dcd9fd9",
+        "filename": "utils/prep_bm_host.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T11:38:33Z",
+      "side": 1,
+      "message": "same commment about moving the static bits to another file",
+      "range": {
+        "startLine": 321,
+        "startChar": 0,
+        "endLine": 321,
+        "endChar": 3
+      },
+      "revId": "e0523635b3336e67a9c6d8ccd860e27c15f6e627",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e0544e1_a7d9b6f2",
+        "filename": "utils/prep_bm_host.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 481,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T11:38:33Z",
+      "side": 1,
+      "message": "what is that ip?",
+      "range": {
+        "startLine": 481,
+        "startChar": 16,
+        "endLine": 481,
+        "endChar": 17
+      },
+      "revId": "e0523635b3336e67a9c6d8ccd860e27c15f6e627",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f431b19_7c0aa2e2",
+        "filename": "utils/prep_bm_host.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 484,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T11:38:33Z",
+      "side": 1,
+      "message": "we assume tt.testing here... but sites can have multiple domains. This needs to be parameterized",
+      "range": {
+        "startLine": 484,
+        "startChar": 3,
+        "endLine": 484,
+        "endChar": 10
+      },
+      "revId": "e0523635b3336e67a9c6d8ccd860e27c15f6e627",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "639a93cf_1ca39a61",
+        "filename": "utils/prep_bm_host.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 504,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T11:38:33Z",
+      "side": 1,
+      "message": "same comment about parameterizing, and working with 1/3 masters",
+      "range": {
+        "startLine": 504,
+        "startChar": 6,
+        "endLine": 504,
+        "endChar": 12
+      },
+      "revId": "e0523635b3336e67a9c6d8ccd860e27c15f6e627",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30ae99f9_67fb3f37",
+        "filename": "utils/prep_bm_host.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 541,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T11:38:33Z",
+      "side": 1,
+      "message": "we don\u0027t need to install openshift-installer here, because it is handled by knictl fetch_requirements command, that installs deps per profile/blueprint",
+      "range": {
+        "startLine": 541,
+        "startChar": 4,
+        "endLine": 541,
+        "endChar": 8
+      },
+      "revId": "e0523635b3336e67a9c6d8ccd860e27c15f6e627",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4f3df14_0acd7f23",
+        "filename": "utils/prep_bm_host.src",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T11:38:33Z",
+      "side": 1,
+      "message": "what is the purpose of this file?",
+      "revId": "e0523635b3336e67a9c6d8ccd860e27c15f6e627",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    }
+  ]
+}
