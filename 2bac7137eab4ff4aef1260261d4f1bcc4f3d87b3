@@ -272,6 +272,40 @@
     },
     {
       "key": {
+        "uuid": "336ea8bf_13aee961",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T13:31:44Z",
+      "side": 1,
+      "message": "Would it make sense to factor out ll. 110 to 127 into a separate method and move to requirements pkg?",
+      "revId": "2bac7137eab4ff4aef1260261d4f1bcc4f3d87b3",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86624d6e_352b2404",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T13:31:44Z",
+      "side": 1,
+      "message": "It\u0027s a bit strange to have parts of the requirements logic in utils pkg and another in requirements pkg (I understand one is generic requirements, the other is site-specific requirements). Maybe move the ValidateRequirements() over to requirements pkg?",
+      "revId": "2bac7137eab4ff4aef1260261d4f1bcc4f3d87b3",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8d6a0ff4_3d07523c",
         "filename": "pkg/site/site.go",
         "patchSetId": 6
