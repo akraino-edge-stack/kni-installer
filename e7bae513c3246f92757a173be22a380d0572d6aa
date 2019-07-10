@@ -177,6 +177,24 @@
     },
     {
       "key": {
+        "uuid": "6043d745_34379d81",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T15:05:26Z",
+      "side": 1,
+      "message": "This is why I stored the manifestContent, not the manifestContentObj as value of the kustomizeManifests map. With lists, this is more difficult, of course. This was what I meant in the chat earlier when I pointed out that when you \"unwrap\" (I think you called it \"decouple\") list elements into separate entities, you won\u0027t get them back together again here.",
+      "parentUuid": "d04fe050_adef9e8d",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "56efcd66_42feb281",
         "filename": "pkg/manifests/manifests.go",
         "patchSetId": 9
@@ -206,6 +224,24 @@
       "side": 1,
       "message": "What dependency? In the case of secrets, the list just contains 1 secret, and doesn\u0027t have any dependency on anything else. The way i imagine this will work (we don\u0027t have any case of a list with \u003e 1 element so i could not test), is that the different manifests will be totally independent and written to individual files, and the installer will read all of them.",
       "parentUuid": "56efcd66_42feb281",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78cef253_0e8bad65",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T15:05:26Z",
+      "side": 1,
+      "message": "I _think_ (need to verify) that when you call the \"openshift-install create (ignition-configs|cluster)\" targets, the installer validates that all necessary manifest files are there (as listed, e.g., in the .openshift-installer-state.json and internal dependency graph). Obviously, the files with the names \"99_openshift-cluster-api_(master|worker)-user-data-secret.yaml\" don\u0027t exist anymore... what happens then?",
+      "parentUuid": "bdc6d8b1_48b1d9ff",
       "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
       "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
       "unresolved": true
@@ -244,6 +280,24 @@
       "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
       "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57a05543_c9e1d02a",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T15:05:26Z",
+      "side": 1,
+      "message": "I think documenting in README.md will be fine.",
+      "parentUuid": "25c9ae2e_4d10ed76",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
     },
     {
       "key": {
@@ -296,6 +350,24 @@
       "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
       "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67d33c82_0ff8c315",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T15:05:26Z",
+      "side": 1,
+      "message": "Let\u0027s deal with it if/when it becomes a problem.",
+      "parentUuid": "a5a11ab4_14e3c554",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
     },
     {
       "key": {
@@ -401,6 +473,24 @@
       "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
       "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ff8311e_2781311a",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T15:05:26Z",
+      "side": 1,
+      "message": "FWM. Just pointing out this (multi-sites per repo) is the current model in the BPs.",
+      "parentUuid": "0acfaf67_2add1370",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
     }
   ]
 }
