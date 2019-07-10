@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "a9a1f38e_eb01d67d",
+        "filename": "cmd/prepare_manifests.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T14:43:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ae37917d_3877d7f9",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4b149a5a_9929dfb0",
         "filename": "pkg/manifests/manifests.go",
         "patchSetId": 9
@@ -33,6 +51,24 @@
       "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
       "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21727c5c_3f29dba8",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T14:43:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4b149a5a_9929dfb0",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
     },
     {
       "key": {
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "ed747dee_76a45117",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T14:43:30Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "593d0a97_4fb756d8",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6a4e9398_8642ec28",
         "filename": "pkg/manifests/manifests.go",
         "patchSetId": 9
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "b4dd4245_5df7f464",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T14:43:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6a4e9398_8642ec28",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e1c6bd8b_f3ad69bb",
         "filename": "pkg/manifests/manifests.go",
         "patchSetId": 9
@@ -81,6 +153,24 @@
       "writtenOn": "2019-07-10T13:31:44Z",
       "side": 1,
       "message": "As soon as you do this, you\u0027re writing a different YAML to the file than what kustomize rendered (you have an extra doc-\u003eobj-\u003edoc round-trip, which changes ordering of properties and similar), which makes it harder to debug by spotting differences.",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d04fe050_adef9e8d",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T14:43:30Z",
+      "side": 1,
+      "message": "Yes, but it comes by the way that i split the manifests, specially on the nested items case. I could just get the same string if the manifest is not a list. But in the case of a list, i analyze the yaml, parse it in two... so i don\u0027t have the original strings, just by marshaling it.\nAs i do a deepequal to compare, works for me, but i agree that visually it makes a difference. What do you suggest?",
+      "parentUuid": "e1c6bd8b_f3ad69bb",
       "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
       "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
       "unresolved": true
@@ -104,6 +194,24 @@
     },
     {
       "key": {
+        "uuid": "bdc6d8b1_48b1d9ff",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T14:43:30Z",
+      "side": 1,
+      "message": "What dependency? In the case of secrets, the list just contains 1 secret, and doesn\u0027t have any dependency on anything else. The way i imagine this will work (we don\u0027t have any case of a list with \u003e 1 element so i could not test), is that the different manifests will be totally independent and written to individual files, and the installer will read all of them.",
+      "parentUuid": "56efcd66_42feb281",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b4e1e015_4d1a8e22",
         "filename": "pkg/site/site.go",
         "patchSetId": 9
@@ -115,6 +223,24 @@
       "writtenOn": "2019-07-10T13:31:44Z",
       "side": 1,
       "message": "Adding this constructor and setting siteRepo\u003d\"\" means a) DownloadSite() will fail if accidentally used together (--\u003e handle this error) and b) prepare_manifests doesn\u0027t fetch updates to site definitions anymore but users have to always re-fetch_requirements. Definitely should be documented.",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25c9ae2e_4d10ed76",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T14:43:30Z",
+      "side": 1,
+      "message": "I am also preparing a patch to refactor README.md totally, to reflect the new workflow. I think it\u0027s cleaner to just download the site once, on requirements and if you want to get updates, relaunch it (fetch_requirements will reuse existing binaries if needed). But i am open to suggestions if you prefer to download the site for prepare_manifests as well.",
+      "parentUuid": "b4e1e015_4d1a8e22",
       "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
       "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
       "unresolved": true
@@ -155,6 +281,24 @@
     },
     {
       "key": {
+        "uuid": "a5a11ab4_14e3c554",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T14:43:30Z",
+      "side": 1,
+      "message": "I guess we\u0027d have to iterate over resources when this happens and do the same search?",
+      "parentUuid": "570bf04c_00aa78a3",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "27185786_a734dbcb",
         "filename": "pkg/site/site.go",
         "patchSetId": 9
@@ -169,6 +313,24 @@
       "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
       "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3187b66b_366b778a",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T14:43:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "27185786_a734dbcb",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
     },
     {
       "key": {
@@ -189,6 +351,24 @@
     },
     {
       "key": {
+        "uuid": "ac698e25_2e49960c",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T14:43:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0c4e0e06_d46c0e08",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "42af14de_699e4b53",
         "filename": "pkg/site/site.go",
         "patchSetId": 9
@@ -200,6 +380,24 @@
       "writtenOn": "2019-07-10T13:31:44Z",
       "side": 1,
       "message": "This is hardcoding that \u003csitename\u003e in \"blueprints/sites/\u003csitename\u003e/00_install-config\" is \"site\" in the blueprint, right? What if a site-config repo contains multiple sites?",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0acfaf67_2add1370",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-07-10T14:43:30Z",
+      "side": 1,
+      "message": "I am assuming one site per repo right now. If we want to support multiple sites, this is not the only change needed, but also more changes on parsing. Maybe we can see how to support multiple sites in a follow-up patch?",
+      "parentUuid": "42af14de_699e4b53",
       "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
       "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
       "unresolved": true
