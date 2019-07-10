@@ -1,0 +1,208 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ae37917d_3877d7f9",
+        "filename": "cmd/prepare_manifests.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T13:31:44Z",
+      "side": 1,
+      "message": "\"If that does not exist,\"",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b149a5a_9929dfb0",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T13:31:44Z",
+      "side": 1,
+      "message": "Remove this \"if/else\"?",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "593d0a97_4fb756d8",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T13:31:44Z",
+      "side": 1,
+      "message": "You really need a list comprehension here ;)",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a4e9398_8642ec28",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T13:31:44Z",
+      "side": 1,
+      "message": "Probably want to rename to \"kustomizeContentObj\".",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1c6bd8b_f3ad69bb",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T13:31:44Z",
+      "side": 1,
+      "message": "As soon as you do this, you\u0027re writing a different YAML to the file than what kustomize rendered (you have an extra doc-\u003eobj-\u003edoc round-trip, which changes ordering of properties and similar), which makes it harder to debug by spotting differences.",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56efcd66_42feb281",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T13:31:44Z",
+      "side": 1,
+      "message": "Doesn\u0027t this mean that if the input is a list, you\u0027re always replacing the openshift-installer\u0027s single file with a list of files with different names? I\u0027d assume openshift-install would then find that one of the dependencies is missing and recreate it, meaning you\u0027d have duplicate objects?",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4e1e015_4d1a8e22",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T13:31:44Z",
+      "side": 1,
+      "message": "Adding this constructor and setting siteRepo\u003d\"\" means a) DownloadSite() will fail if accidentally used together (--\u003e handle this error) and b) prepare_manifests doesn\u0027t fetch updates to site definitions anymore but users have to always re-fetch_requirements. Definitely should be documented.",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76e26c83_cfd15add",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T13:31:44Z",
+      "side": 1,
+      "message": "\"siteBuildPath\" is not used consistently here (\".kni/\u003csitename\u003e/site\") and elsewhere (\".kni/\u003csitename\u003e\"). Maybe use something like:\ns.buildPath --\u003e .kni\nsitePath --\u003e .kni/\u003csitename\u003e\nsiteLayerPath --\u003e .kni/\u003csitename\u003e/site\nprofileLayerPath --\u003e .kni/\u003csitename\u003e/profile",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "570bf04c_00aa78a3",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T13:31:44Z",
+      "side": 1,
+      "message": "\"bases\" will be deprecated and folded into \"resources\". Wouldn\u0027t know how to easily id the profile resource, though, other than grep\u0027ing for \"profiles/\u003cprofilename\u003e\".",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27185786_a734dbcb",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T13:31:44Z",
+      "side": 1,
+      "message": "You\u0027re copying in the whole blueprint, not only the profile, right? If so, may want to call this \"blueprintRepo\" instead of \"profileRepo\".",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c4e0e06_d46c0e08",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T13:31:44Z",
+      "side": 1,
+      "message": "This is not the whole site, but just the openshift-install assets, right? May want to call it assetPath and \"%s/generated_assets\" or something.",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42af14de_699e4b53",
+        "filename": "pkg/site/site.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 151
+      },
+      "writtenOn": "2019-07-10T13:31:44Z",
+      "side": 1,
+      "message": "This is hardcoding that \u003csitename\u003e in \"blueprints/sites/\u003csitename\u003e/00_install-config\" is \"site\" in the blueprint, right? What if a site-config repo contains multiple sites?",
+      "revId": "e7bae513c3246f92757a173be22a380d0572d6aa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    }
+  ]
+}
