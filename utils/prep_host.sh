@@ -2,8 +2,20 @@
 
 set +x
 
+display_usage()
+{
+    echo "   Akraino Prep Libvirt Host"
+    echo "--------------------------------"
+    echo ""
+    echo "This script will configure the host to deploy a libvirt-based OpenShift cluster"
+    echo ""
+    echo "The user must introduced cluster domain as first argument:"
+    echo "source prep_host.sh tt.testing"
+}
+
 prerequisites()
 {
+    cluster_domain=$1
     # Check if virtualization is supported
     ls /dev/kvm 2> /dev/null
     if [ $? -ne 0 ]
@@ -67,8 +79,8 @@ EOF
     fi
     dnsmasqconf=/etc/NetworkManager/dnsmasq.d/openshift.conf
     if ! [ -f "${dnsmasqconf}" ]; then
-        echo server=/tt.testing/192.168.126.1 | sudo tee "${dnsmasqconf}"
-        echo address=/.apps.tt.testing/192.168.126.51 | sudo tee -a "${dnsmasqconf}"
+        echo server=/$cluster_domain/192.168.126.1 | sudo tee "${dnsmasqconf}"
+        echo address=/.apps.$cluster_domain/192.168.126.51 | sudo tee -a "${dnsmasqconf}"
         dnschanged=1
     fi
     if [ -n "$dnschanged" ]; then
@@ -83,4 +95,18 @@ EOF
     fi
 }
 
-prerequisites
+# If no arguments supplied, display usage
+if [ $# -eq 0 ]
+then
+    display_usage
+    exit 1
+fi
+
+# Check whether user had supplied -h or --help . If yes display usage 
+if [[ ( $1 == "--help") ||  $1 == "-h" ]]
+then
+    display_usage
+    exit 1
+fi
+
+#prerequisites
