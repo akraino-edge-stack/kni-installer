@@ -72,20 +72,13 @@ EOF
 
     # Set up NetworkManager DNS overlay
     dnsconf=/etc/NetworkManager/conf.d/openshift.conf
-    local dnschanged=""
-    if ! [ -f "${dnsconf}" ]; then
-        echo -e "[main]\ndns=dnsmasq" | sudo tee "${dnsconf}"
-        dnschanged=1
-    fi
+    echo -e "[main]\ndns=dnsmasq" | sudo tee "${dnsconf}"
+
     dnsmasqconf=/etc/NetworkManager/dnsmasq.d/openshift.conf
-    if ! [ -f "${dnsmasqconf}" ]; then
-        echo server=/$cluster_domain/192.168.126.1 | sudo tee "${dnsmasqconf}"
-        echo address=/.apps.$cluster_domain/192.168.126.51 | sudo tee -a "${dnsmasqconf}"
-        dnschanged=1
-    fi
-    if [ -n "$dnschanged" ]; then
-        sudo systemctl restart NetworkManager
-    fi
+    rm $dnsmasqconf
+    echo server=/$cluster_domain/192.168.126.1 | sudo tee "${dnsmasqconf}"
+    echo address=/.apps.$cluster_domain/192.168.126.51 | sudo tee -a "${dnsmasqconf}"
+    sudo systemctl restart NetworkManager
 
     # Create an entry in the /etc/host
     grep -q 'libvirt.default' /etc/hosts
@@ -109,4 +102,4 @@ then
     exit 1
 fi
 
-prerequisites
+prerequisites $1
