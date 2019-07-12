@@ -1,4 +1,4 @@
-GOPATH=$(shell pwd)/vendor:$(shell pwd):"${HOME}/go"
+export GOPATH:="${GOPATH}":$(shell pwd)/vendor:$(shell pwd):"${HOME}/go"
 GOBIN=$(shell pwd)/bin
 GOFILES=$(wildcard *.go)
 GONAME="knictl"
