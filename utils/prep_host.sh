@@ -102,11 +102,11 @@ then
     exit 1
 fi
 
-# Check whether user had supplied -h or --help . If yes display usage 
+# Check whether user had supplied -h or --help . If yes display usage
 if [[ ( $1 == "--help") ||  $1 == "-h" ]]
 then
     display_usage
     exit 1
 fi
 
-#prerequisites
+prerequisites
