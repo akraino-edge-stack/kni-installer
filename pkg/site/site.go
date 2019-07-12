@@ -329,7 +329,7 @@ func (s Site) ApplyWorkloads() {
 	binariesPath := fmt.Sprintf("%s/requirements", siteBuildPath)
 
 	if _, err := os.Stat(kubeconfigFile); err == nil {
-		log.Println("Applying workloads from %s", fmt.Sprintf("%s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
+		log.Println(fmt.Sprintf("Applying workloads from %s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
 		out := utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
 		if string(out) != "" {
 			// now we can apply it
@@ -338,7 +338,7 @@ func (s Site) ApplyWorkloads() {
 			log.Println(fmt.Sprintf("No manifests found for %s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
 		}
 
-		log.Println("Applying workloads from %s", fmt.Sprintf("%s/blueprint/sites/site/03_services", siteBuildPath))
+		log.Println(fmt.Sprintf("Applying workloads from %s/blueprint/sites/site/03_services", siteBuildPath))
 		out = utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/03_services", siteBuildPath))
 		if string(out) != "" {
 			// now we can apply it
