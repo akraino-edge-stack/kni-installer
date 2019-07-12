@@ -64,7 +64,6 @@ func ApplyKustomize(kustomizeBinary string, kustomizePath string) []byte {
 // utility to apply kubectl for a given output
 func ApplyKubectl(kubectlBinary string, kubectlContent []byte, kubeconfigPath string) {
 	var out []byte
-	var err string
 	for i := 1; i <= 10; i++ {
 		cmd := exec.Command(kubectlBinary, "apply", "-f", "-")
 
