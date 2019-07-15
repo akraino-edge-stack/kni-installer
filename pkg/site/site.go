@@ -265,9 +265,10 @@ func (s Site) PrepareManifests() {
 
 	// now generate the manifests
 	cmd = exec.Command(fmt.Sprintf("%s/openshift-install", binariesPath), "create", "manifests", fmt.Sprintf("--dir=%s", assetsPath), "--log-level", "debug")
-	err = cmd.Run()
+	out, err = cmd.Output()
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Error creating manifests: %s", err))
+		log.Println(out)
 		os.Exit(1)
 	}
 
