@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -64,9 +65,28 @@ func ApplyKustomize(kustomizeBinary string, kustomizePath string) []byte {
 // utility to apply kubectl for a given output
 func ApplyKubectl(kubectlBinary string, kubectlContent []byte, kubeconfigPath string) {
 	var out []byte
-	for i := 1; i <= 10; i++ {
-		cmd := exec.Command(kubectlBinary, "apply", "-f", "-")
 
+	// write content to be applied to temporary file
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "kubectl-")
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Cannot create temporary file: %s", err))
+		os.Exit(1)
+	}
+	defer os.Remove(tmpFile.Name())
+	tmpFilePath, err := filepath.Abs(filepath.Dir(tmpFile.Name()))
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error retrieving kubectl file path: %s", err))
+		os.Exit(1)
+	}
+
+	_, err = tmpFile.Write(kubectlContent)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error writing kubectl file: %s", err))
+		os.Exit(1)
+	}
+
+	for i := 1; i <= 10; i++ {
+		cmd := exec.Command(kubectlBinary, "apply", "-f", tmpFilePath)
 		cmd.Env = os.Environ()
 		cmd.Env = append(cmd.Env, fmt.Sprintf("KUBECONFIG_PATH=%s", kubeconfigPath))
 
