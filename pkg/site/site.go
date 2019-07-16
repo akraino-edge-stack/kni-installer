@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -212,12 +211,8 @@ func (s Site) PrepareManifests() {
 	}
 
 	// and now copy site inside the sites folder, replacing the absolute references to relative
-	cmd := exec.Command("cp", "-R", fmt.Sprintf("%s/site", sitePath), fmt.Sprintf("%s/blueprint/sites/site", sitePath))
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(fmt.Sprintf("Error copying site into blueprint: %s", err))
-		os.Exit(1)
-	}
+	var envVars []string
+	utils.ExecuteCommand("", envVars, true, false, "cp", "-R", fmt.Sprintf("%s/site", sitePath), fmt.Sprintf("%s/blueprint/sites/site", sitePath))
 
 	err = filepath.Walk(fmt.Sprintf("%s/blueprint/sites/site", sitePath), func(path string, info os.FileInfo, err error) error {
 		if err == nil {
@@ -264,14 +259,7 @@ func (s Site) PrepareManifests() {
 	}
 
 	// now generate the manifests
-	cmd = exec.Command(fmt.Sprintf("%s/openshift-install", binariesPath), "create", "manifests", fmt.Sprintf("--dir=%s", assetsPath), "--log-level", "debug")
-	out, err = cmd.Output()
-	if err != nil {
-		log.Fatal(fmt.Sprintf("Error creating manifests: %s", err))
-		log.Println(out)
-		os.Exit(1)
-	}
-
+	utils.ExecuteCommand("", envVars, true, true, fmt.Sprintf("%s/openshift-install", binariesPath), "create", "manifests", fmt.Sprintf("--dir=%s", assetsPath), "--log-level", "debug")
 	// iterate over all the generated files and create a kustomization file
 	f, err := os.Create(fmt.Sprintf("%s/kustomization.yaml", assetsPath))
 	if err != nil {
