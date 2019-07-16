@@ -22,7 +22,7 @@ func ValidateRequirements(buildPath string, siteName string) {
 	if _, err := os.Stat(fmt.Sprintf("%s/id_rsa.pub", buildPath)); os.IsNotExist(err) {
 		log.Println(fmt.Sprintf("No SSH public key (id_rsa.pub) found in %s. Generating keypair.", buildPath))
 
-		cmd := exec.Command("ssh-keygen", "-b", "2048", "-f", fmt.Sprintf("%s/id_rsa", buildPath), "-C", "user@example.com", "-q", "-N", "\"\"")
+		cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("ssh-keygen -b 2048 -q -N '' -f %s/id_rsa -C user@example.com", buildPath))
 		err = cmd.Run()
 		if err != nil {
 			log.Fatal(fmt.Sprintf("Error generating ssh keypair: %s", err))
