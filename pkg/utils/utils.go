@@ -68,7 +68,7 @@ func ApplyKubectl(kubectlBinary string, kubectlContent []byte, kubeconfigPath st
 		os.Exit(1)
 	}
 
-	envVars := []string{fmt.Sprintf("KUBECONFIG_PATH=%s", kubeconfigPath)}
+	envVars := []string{fmt.Sprintf("KUBECONFIG=%s", kubeconfigPath)}
 	for i := 1; i <= 10; i++ {
 		_, err := ExecuteCommand("", envVars, false, true, kubectlBinary, "apply", "-f", tmpFile.Name())
 
@@ -76,7 +76,7 @@ func ApplyKubectl(kubectlBinary string, kubectlContent []byte, kubeconfigPath st
 			// it is ok, stop the loop
 			break
 		} else {
-			log.Println(err)
+			log.Println(string(err))
 			// sleep and retry
 			time.Sleep(60 * time.Second)
 		}
