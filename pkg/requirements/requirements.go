@@ -1,16 +1,14 @@
 package requirements
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
 
+	"gerrit.akraino.org/kni/installer/pkg/utils"
 	getter "github.com/hashicorp/go-getter"
 )
 
@@ -45,9 +43,9 @@ func (r Requirement) FetchRequirementFolder() {
 	err = filepath.Walk(extractDir, func(path string, info os.FileInfo, err error) error {
 		if (info.Name() == r.binaryName || info.Name() == alternativeBinaryName) && !info.IsDir() {
 			// we found the binary, move it. Give exec perms as well
-            finalBinary := fmt.Sprintf("%s/%s", r.buildPath, r.binaryName)
+			finalBinary := fmt.Sprintf("%s/%s", r.buildPath, r.binaryName)
 			os.Rename(path, finalBinary)
-            os.Chmod(finalBinary, 0755)
+			os.Chmod(finalBinary, 0755)
 			os.RemoveAll(extractDir)
 			return nil
 		}
@@ -66,31 +64,12 @@ func (r Requirement) BuildOpenshiftBinary() {
 	}
 
 	// build the openshift binary
-	cmd := exec.Command("hack/build.sh")
-	cmd.Dir = extractDir
-	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, "TAGS=libvirt")
-	cmd.Env = append(cmd.Env, fmt.Sprintf("GOPATH=%s", r.buildPath))
-
-	var stdBuffer bytes.Buffer
-	mw := io.MultiWriter(os.Stdout, &stdBuffer)
-	cmd.Stdout = mw
-	cmd.Stderr = mw
-
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(fmt.Sprintf("Error building binary: %s - %s", err, stdBuffer.String()))
-		os.Exit(1)
-	}
-	log.Println(stdBuffer.String())
+	envVars := []string{"TAGS=libvirt", fmt.Sprintf("GOPATH=%s", r.buildPath)}
+	utils.ExecuteCommand(extractDir, envVars, true, true, "hack/build.sh")
 
 	// copy the generated binary to the build directory
-	cmd = exec.Command("cp", fmt.Sprintf("%s/bin/openshift-install", extractDir), r.buildPath)
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(fmt.Sprintf("Error copying installer to buid path: %s", err))
-		os.Exit(1)
-	}
+	var cpEnvVars []string
+	utils.ExecuteCommand("", cpEnvVars, true, true, "cp", fmt.Sprintf("%s/bin/openshift-install", extractDir), r.buildPath)
 	log.Println(fmt.Sprintf("Installer is available on %s/openshift-install", r.buildPath))
 }
 
