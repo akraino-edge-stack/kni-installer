@@ -36,6 +36,8 @@ Please look at [https://docs.openshift.com/container-platform/4.1/installing/ins
 
 In the case of libvirt, a helper script can be executed to prepare the installer for acting as a virthost. You can execute **utils/prep_host.sh** script to properly configure your server to install OpenShift on libvirt.
 
+In the case of baremetal, please check [https://docs.openshift.com/container-platform/4.1/installing/installing_bare_metal/installing-bare-metal.html](https://docs.openshift.com/container-platform/4.1/installing/installing_bare_metal/installing-bare-metal.html) in order to prepare your environment for the deployment.
+
 ## Structure of a site
 In order to deploy a blueprint, you need to create a repository with a site. The site configuration is based in [kustomize](https://github.com/kubernetes-sigs/kustomize), and needs to use our blueprints as base, referencing that properly. A sample site can be seen on[https://github.com/yrobla/kni-site](https://github.com/yrobla/kni-site) . Site needs to have this structure:
 
@@ -129,7 +131,13 @@ Then, you need to deploy the cluster using the generated manifests. This can be 
 
     $HOME/.kni/$SITE_NAME/requirements/openshift-install create cluster --dir=$HOME/.kni/$SITE_NAME/final_manifests
 
-   This will deploy a cluster based on the specified manifests. You can learn more about how to manage cluster deployment and how to interact with it on [https://docs.openshift.com/container-platform/4.1/welcome/index.html](https://docs.openshift.com/container-platform/4.1/welcome/index.html)
+This will deploy a cluster based on the specified manifests. You can learn more about how to manage cluster deployment and how to interact with it on [https://docs.openshift.com/container-platform/4.1/welcome/index.html](https://docs.openshift.com/container-platform/4.1/welcome/index.html)
+
+In the case of baremetal, ignition files need to be applied to each machine, instead of running the create cluster command. You can prepare the ignition files running this command:
+
+    $HOME/.kni/$SITE_NAME/requirements/openshift-install create ignition-configs --dir=$HOME/.kni/$SITE_NAME/final_manifests
+
+Then copy the ignition files to each machine, according to your provisioning tool.
 
    **4. Apply workloads**
 After the cluster has been generated, the extra workloads that have been specified in manifests (like kubevirt), need to be applied. This can be achieved by:
