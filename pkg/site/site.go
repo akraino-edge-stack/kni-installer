@@ -52,10 +52,19 @@ func (s Site) DownloadSite() {
 		log.Println(fmt.Sprintf("Cloning the site repository from %s", s.siteRepo))
 		siteLayerPath := fmt.Sprintf("%s/%s/site", s.buildPath, s.siteName)
 		os.RemoveAll(siteLayerPath)
-		client := &getter.Client{Src: s.siteRepo, Dst: siteLayerPath, Mode: getter.ClientModeAny}
-		err := client.Get()
-		if err != nil {
-			log.Fatal(fmt.Sprintf("Error cloning site repository: %s", err))
+
+		if strings.HasPrefix(s.siteRepo, "file://") {
+			// just do a local copy
+			var envVars []string
+			os.MkdirAll(siteLayerPath, 0775)
+			originPath := fmt.Sprintf("%s/.", s.siteRepo[7:len(s.siteRepo)])
+			utils.ExecuteCommand("", envVars, true, false, "cp", "-a", originPath, siteLayerPath)
+		} else {
+			client := &getter.Client{Src: s.siteRepo, Dst: siteLayerPath, Mode: getter.ClientModeAny}
+			err := client.Get()
+			if err != nil {
+				log.Fatal(fmt.Sprintf("Error cloning site repository: %s", err))
+			}
 		}
 	} else {
 		log.Fatal(fmt.Sprintf("Site repository does not exist for the site %s", s.siteName))
@@ -124,10 +133,18 @@ func (s Site) FetchRequirements() {
 
 	profileBuildPath := fmt.Sprintf("%s/%s", sitePath, profileName)
 	log.Println(fmt.Sprintf("Downloading profile repo from %s into %s", profileLayerPath, profileBuildPath))
-	client := &getter.Client{Src: profileLayerPath, Dst: profileBuildPath, Mode: getter.ClientModeAny}
-	err := client.Get()
-	if err != nil {
-		log.Fatal(fmt.Sprintf("Error cloning profile repository: %s", err))
+	if strings.HasPrefix(profileLayerPath, "file://") {
+		// just do a local copy
+		var envVars []string
+		os.MkdirAll(profileBuildPath, 0775)
+		originPath := fmt.Sprintf("%s/.", profileLayerPath[7:len(profileLayerPath)])
+		utils.ExecuteCommand("", envVars, true, false, "cp", "-a", originPath, profileBuildPath)
+	} else {
+		client := &getter.Client{Src: profileLayerPath, Dst: profileBuildPath, Mode: getter.ClientModeAny}
+		err := client.Get()
+		if err != nil {
+			log.Fatal(fmt.Sprintf("Error cloning profile repository: %s", err))
+		}
 	}
 
 	// read yaml from requirements and start fetching the bits
@@ -203,36 +220,59 @@ func (s Site) PrepareManifests() {
 
 	// retrieve profile path and clone the repo
 	_, profileLayerPath, profileRef := s.GetProfileFromSite()
-	indexGit := strings.LastIndex(profileLayerPath, "//")
+
 	var blueprintRepo string
 	var absoluteBlueprintRepo string
-	if indexGit == -1 {
+	var downloadRepo string
+	// check if we have a file or git
+	if strings.HasPrefix(profileLayerPath, "file://") {
 		blueprintRepo = profileLayerPath
-		absoluteBlueprintRepo = profileLayerPath
-	} else {
-		blueprintRepo = profileLayerPath[0:indexGit]
-		absoluteBlueprintRepo = profileLayerPath[0:(indexGit + 2)]
-	}
 
-	downloadRepo := blueprintRepo
-	if profileRef != "" {
-		downloadRepo = fmt.Sprintf("%s?ref=%s", blueprintRepo, profileRef)
+		// we need to extract the absolute repo, so we strip from profiles
+		pos := strings.LastIndex(blueprintRepo, "/profiles")
+		if pos != -1 {
+			downloadRepo = blueprintRepo[0 : pos+1]
+		}
+		absoluteBlueprintRepo = downloadRepo
+	} else {
+		indexGit := strings.LastIndex(profileLayerPath, "//")
+		if indexGit == -1 {
+			blueprintRepo = profileLayerPath
+			absoluteBlueprintRepo = profileLayerPath
+		} else {
+			blueprintRepo = profileLayerPath[0:indexGit]
+			absoluteBlueprintRepo = profileLayerPath[0:(indexGit + 2)]
+		}
+
+		downloadRepo = blueprintRepo
+		if profileRef != "" {
+			downloadRepo = fmt.Sprintf("%s?ref=%s", blueprintRepo, profileRef)
+		}
 	}
 
 	log.Println(fmt.Sprintf("Downloading blueprint repo from %s", downloadRepo))
 	blueprintDir := fmt.Sprintf("%s/blueprint", sitePath)
 	os.RemoveAll(blueprintDir)
-	client := &getter.Client{Src: downloadRepo, Dst: blueprintDir, Mode: getter.ClientModeAny}
-	err := client.Get()
-	if err != nil {
-		log.Fatal(fmt.Sprintf("Error cloning profile repository: %s", err))
+
+	if strings.HasPrefix(downloadRepo, "file://") {
+		// just do a local copy
+		var envVars []string
+		os.MkdirAll(blueprintDir, 0775)
+		originPath := fmt.Sprintf("%s/.", downloadRepo[7:len(downloadRepo)])
+		utils.ExecuteCommand("", envVars, true, false, "cp", "-a", originPath, blueprintDir)
+	} else {
+		client := &getter.Client{Src: downloadRepo, Dst: blueprintDir, Mode: getter.ClientModeAny}
+		err := client.Get()
+		if err != nil {
+			log.Fatal(fmt.Sprintf("Error cloning profile repository: %s", err))
+		}
 	}
 
 	// and now copy site inside the sites folder, replacing the absolute references to relative
 	var envVars []string
 	utils.ExecuteCommand("", envVars, true, false, "cp", "-R", fmt.Sprintf("%s/site", sitePath), fmt.Sprintf("%s/blueprint/sites/site", sitePath))
 
-	err = filepath.Walk(fmt.Sprintf("%s/blueprint/sites/site", sitePath), func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(fmt.Sprintf("%s/blueprint/sites/site", sitePath), func(path string, info os.FileInfo, err error) error {
 		if err == nil {
 			if info.Name() == "kustomization.yaml" {
 				readKustomization, err := ioutil.ReadFile(path)
@@ -240,6 +280,7 @@ func (s Site) PrepareManifests() {
 					log.Fatal(fmt.Sprintf("Error opening kustomization file: %s", err))
 					os.Exit(1)
 				}
+
 				newKustomization := strings.Replace(string(readKustomization), absoluteBlueprintRepo, "../../../", -1)
 				if profileRef != "" {
 					newKustomization = strings.Replace(newKustomization, fmt.Sprintf("?ref=%s", profileRef), "", -1)
@@ -252,6 +293,7 @@ func (s Site) PrepareManifests() {
 				}
 				return nil
 			}
+
 		} else {
 			log.Println(fmt.Sprintf("Error walking on site directory: %s", err))
 			os.Exit(1)
