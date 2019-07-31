@@ -23,30 +23,11 @@ SITE_NAME='testing.virt.edge-sites.net'
 echo '---> Starting kni installer generation'
 export GOPATH=${WORKSPACE}/
 
-function approve_certs() {
-    # sleep for the first 10 min
-    sleep 600
-
-    # temporary fix, autoapprove certificates on background
-    while /bin/true; do
-        export KUBECONFIG=$HOME/.kni/${SITE_NAME}/final_manifests/auth/kubeconfig
-        oc get csr | grep worker | grep Pending | awk '{print $1}' | xargs -n 1 oc adm certificate approve || true
-        sleep 60
-    done
-}
-
-# move the blueprint to an inner directory
-mkdir ${WORKSPACE}/blueprint-pae
-mv base profiles sites tools ${WORKSPACE}/blueprint-pae/
-
-# clone installer in the right directory
-sudo rm -rf ${WORKSPACE}/${KNI_PATH}
-mkdir -p ${WORKSPACE}/${KNI_PATH}
-pushd ${WORKSPACE}/${KNI_PATH}/
-git clone https://gerrit.akraino.org/r/kni/installer
-pushd installer
-
 # first build kni installer
+sudo rm -rf ${WORKSPACE}/${KNI_PATH}
+mkdir -p ${WORKSPACE}/${KNI_PATH}/installer
+cp -a installer ${WORKSPACE}/${KNI_PATH}/
+pushd ${WORKSPACE}/${KNI_PATH}/installer
 make build 2>&1 | tee ${WORKSPACE}/build.log
 
 # do a host preparation and cleanup
