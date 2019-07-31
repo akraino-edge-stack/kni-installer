@@ -41,9 +41,14 @@ mkdir $HOME/.kni || true
 cp $WORKSPACE/akraino-secrets/coreos-pull-secret $HOME/.kni/pull-secret.json || true
 cp $HOME/.ssh/id_rsa.pub $HOME/.kni/id_rsa.pub || true
 
+# replace site path with a local ref to the cloned blueprint
+BLUEPRINT_PATH="${WORKSPACE}/blueprint-pae/"
+KUSTOMIZATION_FILE=${BLUEPRINT_PATH}/sites/${SITE_NAME}/00_install-config/kustomization.yaml
+sed -i "s#- git::https://gerrit.akraino.org/r/kni/blueprint-pae.git/#- file://${BLUEPRINT_PATH}#g" ${KUSTOMIZATION_FILE}
+
 # start the workflow
 sudo rm -rf /$HOME/.kni/${SITE_NAME}/final_manifests || true
-./knictl fetch_requirements file://${WORKSPACE}/blueprint-pae//sites/${SITE_NAME} 2>&1 | tee ${WORKSPACE}/libvirt_requirements.log
+./knictl fetch_requirements file://${BLUEPRINT_PATH}/sites/${SITE_NAME} 2>&1 | tee ${WORKSPACE}/libvirt_requirements.log
 ./knictl prepare_manifests ${SITE_NAME} 2>&1 | tee ${WORKSPACE}/libvirt_manifests.log
 
 # now run the cluster
