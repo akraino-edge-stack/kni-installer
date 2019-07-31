@@ -48,11 +48,8 @@ sudo rm -rf /$HOME/.kni/${SITE_NAME}/final_manifests || true
 
 # now run the cluster
 source $HOME/.kni/${SITE_NAME}/profile.env
-approve_certs &
-FUNCTION_PID=$!
 sudo -E $HOME/.kni/${SITE_NAME}/requirements/openshift-install create cluster --dir=/$HOME/.kni/${SITE_NAME}/final_manifests 2>&1 | tee ${WORKSPACE}/libvirt_deploy.log
 STATUS=$?
-kill $FUNCTION_PID || true
 
 # output tfstate
 echo "metadata.json for removing cluster"
