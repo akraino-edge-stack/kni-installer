@@ -198,7 +198,7 @@ func (s Site) WriteEnvFile() {
 		// search for the releaseImageOverride key
 		envContents = fmt.Sprintf("%sexport OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE=%s\n", envContents, string(releaseImage.(string)))
 	}
-	envContents = fmt.Sprintf("%sexport TF_VAR_libvirt_master_memory=8192\n", envContents)
+	envContents = fmt.Sprintf("%sexport TF_VAR_libvirt_master_memory=12288\n", envContents)
 	envContents = fmt.Sprintf("%sexport TF_VAR_libvirt_master_vcpu=4\n", envContents)
 
 	// write a profile.env in the siteBuildPath
