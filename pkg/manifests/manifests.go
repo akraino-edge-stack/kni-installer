@@ -217,6 +217,7 @@ func MergeManifests(content string, siteBuildPath string) {
 		os.Exit(1)
 	} else {
 		log.Println(fmt.Sprintf("*** Manifest generation finished. You can run now: %s/requirements/openshift-install create cluster --dir=%s/final_manifests to create the site cluster ***", siteBuildPath, siteBuildPath))
+		log.Println(fmt.Sprintf("If using UPI you can generate ignition files with: %s/requirements/openshift-install create ignition-configs --dir=%s/final_manifests", siteBuildPath, siteBuildPath))
 		log.Println(fmt.Sprintf("A profile.env file has been generated inside %s/profile.env, you can source it before starting the openshift-install command", siteBuildPath))
 		log.Println(fmt.Sprintf("In order to destroy the cluster you can run:  %s/requirements/openshift-install destroy cluster --dir %s/final_manifests", siteBuildPath, siteBuildPath))
 	}
