@@ -75,7 +75,7 @@ EOF
     echo -e "[main]\ndns=dnsmasq" | sudo tee "${dnsconf}"
 
     dnsmasqconf=/etc/NetworkManager/dnsmasq.d/openshift.conf
-    rm $dnsmasqconf
+    sudo rm $dnsmasqconf
     echo server=/$cluster_domain/192.168.126.1 | sudo tee "${dnsmasqconf}"
     echo address=/.apps.$cluster_domain/192.168.126.51 | sudo tee -a "${dnsmasqconf}"
     sudo systemctl restart NetworkManager
