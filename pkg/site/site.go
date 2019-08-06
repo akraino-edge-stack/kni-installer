@@ -193,13 +193,12 @@ func (s Site) WriteEnvFile() {
 		os.Exit(1)
 	}
 
-	releaseImage, ok := configFileObj["config"].(map[interface{}]interface{})["releaseImageOverride"]
+	envVars, ok := configFileObj["config"].(map[interface{}]interface{})
 	if ok {
-		// search for the releaseImageOverride key
-		envContents = fmt.Sprintf("%sexport OPENSHIFT_INSTALL_RELEASE_IMAGE_OVERRIDE=%s\n", envContents, string(releaseImage.(string)))
+		for index, element := range envVars {
+			envContents = fmt.Sprintf("%sexport %s=%s\n", envContents, string(index.(string)), string(element.(string)))
+		}
 	}
-	envContents = fmt.Sprintf("%sexport TF_VAR_libvirt_master_memory=12288\n", envContents)
-	envContents = fmt.Sprintf("%sexport TF_VAR_libvirt_master_vcpu=4\n", envContents)
 
 	// write a profile.env in the siteBuildPath
 	err = ioutil.WriteFile(fmt.Sprintf("%s/profile.env", siteBuildPath), []byte(envContents), 0644)
