@@ -75,6 +75,5 @@ if [ $STATUS -ne 0 ]; then
 fi
 
 popd
-popd
 
 exit $STATUS
