@@ -381,7 +381,11 @@ func (s Site) ApplyWorkloads() {
 
 	if _, err := os.Stat(kubeconfigFile); err == nil {
 		log.Println(fmt.Sprintf("Applying workloads from %s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
-		out := utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
+
+		addonsPath := fmt.Sprintf("%s/blueprint/sites/site/02_cluster-addons", siteBuildPath)
+		utils.PrepareKustomize(fmt.Sprintf("%s/kubectl", binariesPath), addonsPath, kubeconfigFile)
+
+		out := utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), addonsPath)
 		if string(out) != "" {
 			// now we can apply it
 			utils.ApplyKubectl(fmt.Sprintf("%s/kubectl", binariesPath), out, kubeconfigFile)
