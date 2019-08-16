@@ -378,22 +378,29 @@ func (s Site) ApplyWorkloads() {
 	// check if we have the needed kubeconfig file
 	kubeconfigFile := fmt.Sprintf("%s/final_manifests/auth/kubeconfig", siteBuildPath)
 	binariesPath := fmt.Sprintf("%s/requirements", siteBuildPath)
+	kubeCtlPath := fmt.Sprintf("%s/kubectl", binariesPath)
+	kustomizePath := fmt.Sprintf("%s/kustomize", binariesPath)
 
 	if _, err := os.Stat(kubeconfigFile); err == nil {
 		log.Println(fmt.Sprintf("Applying workloads from %s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
-		out := utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
+
+		addonsPath := fmt.Sprintf("%s/blueprint/sites/site/02_cluster-addons", siteBuildPath)
+		utils.PrepareKustomize(kubeCtlPath, addonsPath, kubeconfigFile)
+		out := utils.ApplyKustomize(kustomizePath, addonsPath)
 		if string(out) != "" {
 			// now we can apply it
-			utils.ApplyKubectl(fmt.Sprintf("%s/kubectl", binariesPath), out, kubeconfigFile)
+			utils.ApplyKubectl(kubeCtlPath, out, kubeconfigFile)
 		} else {
 			log.Println(fmt.Sprintf("No manifests found for %s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
 		}
 
 		log.Println(fmt.Sprintf("Applying workloads from %s/blueprint/sites/site/03_services", siteBuildPath))
-		out = utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/03_services", siteBuildPath))
+		servicesPath := fmt.Sprintf("%s/blueprint/sites/site/03_services", siteBuildPath)
+		utils.PrepareKustomize(kubeCtlPath, servicesPath, kubeconfigFile)
+		out = utils.ApplyKustomize(kustomizePath, servicesPath)
 		if string(out) != "" {
 			// now we can apply it
-			utils.ApplyKubectl(fmt.Sprintf("%s/kubectl", binariesPath), out, kubeconfigFile)
+			utils.ApplyKubectl(kubeCtlPath, out, kubeconfigFile)
 		} else {
 			log.Println(fmt.Sprintf("No manifests found for %s/blueprint/sites/site/03_services", siteBuildPath))
 		}
