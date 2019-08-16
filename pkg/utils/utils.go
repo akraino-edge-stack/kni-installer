@@ -7,8 +7,12 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
+	"reflect"
 	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
 // utility to validate pre-requisites for deploying
@@ -34,6 +38,128 @@ func ValidateRequirements(buildPath string, siteName string) {
 		os.Exit(1)
 	}
 
+}
+
+// utility to get all kustomize dependencies before applying them
+func PrepareKustomize(kubectlBinary string, kustomizePath string, kubeconfigPath string) {
+	kustomizationContent, err := ioutil.ReadFile(fmt.Sprintf("%s/kustomization.yaml", kustomizePath))
+	if err != nil {
+		log.Println(fmt.Sprintf("Error reading kustomization content: %s", err))
+		os.Exit(1)
+	}
+	var kustomizationContentObj map[interface{}]interface{}
+	err = yaml.Unmarshal(kustomizationContent, &kustomizationContentObj)
+
+	// check if we have patchesjson entry
+	var patchesOutput [][]byte
+	if jsonPatches, ok := kustomizationContentObj["patchesJson6902"]; ok {
+		jsonList := reflect.ValueOf(jsonPatches)
+		var targetPatch map[interface{}]interface{}
+		var kindPatch interface{}
+		var namePatch interface{}
+		var namespacePatch interface{}
+		var groupPatch interface{}
+		var namespaceContent string
+
+		for i := 0; i < jsonList.Len(); i++ {
+			currentPatch := jsonList.Index(i).Interface().(map[interface{}]interface{})
+			targetPatch, ok = currentPatch["target"].(map[interface{}]interface{})
+			if !ok {
+				log.Fatal("Error parsing json patch, target not found")
+				os.Exit(1)
+			}
+			if kindPatch, ok = targetPatch["kind"]; !ok {
+				log.Fatal("Error parsing json patch, kind not found")
+				os.Exit(1)
+			}
+			if namePatch, ok = targetPatch["name"]; !ok {
+				log.Fatal("Error parsing json patch, name not found")
+				os.Exit(1)
+			}
+			if namespacePatch, ok = targetPatch["namespace"]; !ok {
+				namespaceContent = ""
+			} else {
+				namespaceContent = fmt.Sprintf("--namespace %s", namespacePatch)
+			}
+
+			if groupPatch, ok = targetPatch["group"]; ok {
+				kindPatch = fmt.Sprintf("%s.%s", kindPatch, groupPatch)
+			}
+
+			// we have the signature of the patch, let's get the content
+			envVars := []string{fmt.Sprintf("KUBECONFIG=%s", kubeconfigPath)}
+			finalCommand := fmt.Sprintf("%s get %s/%s -o yaml %s", kubectlBinary, kindPatch, namePatch, namespaceContent)
+			out, err := ExecuteCommand("", envVars, false, false, "/bin/bash", "-c", finalCommand)
+
+			if len(err) > 0 {
+				log.Fatal(fmt.Sprintf("Error extracting content from %s/%s", kindPatch, namePatch))
+				os.Exit(1)
+			}
+
+			// if there is output, append to contents
+			if out != nil {
+				patchesOutput = append(patchesOutput, out)
+			}
+		}
+	}
+
+	// if patchesOutput has content, create an entry in resources to inject the patches bit
+	if len(patchesOutput) > 0 {
+		resourcesPath := fmt.Sprintf("%s/patches_objects.yaml", kustomizePath)
+		os.Remove(resourcesPath)
+		f, err := os.Create(resourcesPath)
+		defer f.Close()
+		if err != nil {
+			log.Fatal(fmt.Sprintf("Error creating patches file: %s", resourcesPath))
+			os.Exit(1)
+		}
+
+		for _, patch := range patchesOutput {
+			f.WriteString("---\n")
+			f.Write(patch)
+		}
+
+		// if there is no resources entry, add it
+		if _, ok := kustomizationContentObj["resources"]; !ok {
+			kustomizationContentObj["resources"] = make([]interface{}, 0)
+		}
+		resources := kustomizationContentObj["resources"]
+
+		// if entry does not exist, append it
+		found := false
+		for _, resourceValue := range resources.([]interface{}) {
+			if resourceValue == resourcesPath {
+				found = true
+				break
+			}
+		}
+		if !found {
+			resources = append(resources.([]interface{}), resourcesPath)
+			kustomizationContentObj["resources"] = resources
+		}
+		final, err := yaml.Marshal(&kustomizationContentObj)
+		if err != nil {
+			log.Fatal("Error manipulating kustomization file")
+			os.Exit(1)
+		}
+		// overwrite the original kustomization file
+		err = ioutil.WriteFile(fmt.Sprintf("%s/kustomization.yaml", kustomizePath), final, 0644)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("Error writing final kustomization file: %s", err))
+			os.Exit(1)
+		}
+	}
+
+	//var basesOutput [][]byte
+	if bases, ok := kustomizationContentObj["bases"]; ok {
+		for _, baseValue := range bases.([]interface{}) {
+			// convert to an absolute path
+			absoluteBaseValue := path.Join(kustomizePath, baseValue.(string))
+
+			// recursively call prepare kustomize
+			PrepareKustomize(kubectlBinary, absoluteBaseValue, kubeconfigPath)
+		}
+	}
 }
 
 // utility to apply kustomize on a given directory
