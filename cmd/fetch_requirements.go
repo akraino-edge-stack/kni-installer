@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"gerrit.akraino.org/kni/installer/pkg/site"
 	"github.com/spf13/cobra"
@@ -45,10 +46,18 @@ var fetchRequirementsCmd = &cobra.Command{
 			buildPath = fmt.Sprintf("%s/.kni", os.Getenv("HOME"))
 		}
 
+		// check if we have a requirements list specified
+		var requirements []string
+		requirementsList, _ := cmd.Flags().GetString("requirements")
+		if len(requirementsList) > 0 {
+			// strip list in array
+			requirements = strings.Split(requirementsList, ",")
+		}
+
 		// define a site object and proceed with requirements fetch
 		s := site.New(siteRepo, buildPath)
 		s.DownloadSite()
-		s.FetchRequirements()
+		s.FetchRequirements(requirements)
 	},
 }
 
@@ -56,5 +65,5 @@ func init() {
 	rootCmd.AddCommand(fetchRequirementsCmd)
 
 	fetchRequirementsCmd.Flags().StringP("build_path", "", "", "Directory to use as build path. If that not exists, the installer will generate a default directory")
-
+	fetchRequirementsCmd.Flags().StringP("requirements", "", "", "Individual requirements list. It needs to be a list of requirements separated by commas. If not supplied, all requirements will be downloaded")
 }

@@ -124,7 +124,7 @@ func (s Site) GetProfileFromSite() (string, string, string) {
 }
 
 // using the downloaded site content, fetches (and builds) the specified requirements
-func (s Site) FetchRequirements() {
+func (s Site) FetchRequirements(individualRequirements []string) {
 	log.Println(fmt.Sprintf("Downloading requirements for %s", s.siteName))
 	sitePath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
 
@@ -162,7 +162,24 @@ func (s Site) FetchRequirements() {
 
 		// requirements is composed of binary and source
 		requirementsBits := strings.SplitN(strings.TrimSpace(requirementsLine), ":", 2)
-		r := requirements.New(strings.TrimSpace(requirementsBits[0]), strings.TrimSpace(requirementsBits[1]), fmt.Sprintf("%s/requirements", sitePath))
+		binaryName := strings.TrimSpace(requirementsBits[0])
+
+		// if we have individual requirements list, check if we have the requirement on it. Otherwise, skip
+		if len(individualRequirements) > 0 {
+			foundReq := false
+			for _, individualRequirement := range individualRequirements {
+				if individualRequirement == binaryName {
+					foundReq = true
+					break
+				}
+			}
+			if !foundReq {
+				// skip this iteration
+				log.Println(fmt.Sprintf("Binary %s not found in list, skipping", binaryName))
+				continue
+			}
+		}
+		r := requirements.New(binaryName, strings.TrimSpace(requirementsBits[1]), fmt.Sprintf("%s/requirements", sitePath))
 		r.FetchRequirement()
 	}
 
