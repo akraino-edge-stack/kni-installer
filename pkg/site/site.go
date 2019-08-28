@@ -225,21 +225,12 @@ func (s Site) WriteEnvFile() {
 	}
 }
 
-// using the downloaded site content, prepares the manifests for it
-func (s Site) PrepareManifests() {
-	sitePath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
-	log.Println(fmt.Sprintf("Preparing manifests for %s", s.siteName))
-
-	// do the initial validation of pre-requisites
-	utils.ValidateRequirements(s.buildPath, s.siteName)
-	binariesPath := fmt.Sprintf("%s/requirements", sitePath)
-
-	// retrieve profile path and clone the repo
-	_, profileLayerPath, profileRef := s.GetProfileFromSite()
-
+// given a site, download the repo dependencies
+func (s Site) DownloadRepo(sitePath string, profileLayerPath string, profileRef string) {
 	var blueprintRepo string
 	var absoluteBlueprintRepo string
 	var downloadRepo string
+
 	// check if we have a file or git
 	if strings.HasPrefix(profileLayerPath, "file://") {
 		blueprintRepo = profileLayerPath
@@ -288,7 +279,7 @@ func (s Site) PrepareManifests() {
 	var envVars []string
 	utils.ExecuteCommand("", envVars, true, false, "cp", "-R", fmt.Sprintf("%s/site", sitePath), fmt.Sprintf("%s/blueprint/sites/site", sitePath))
 
-	err := filepath.Walk(fmt.Sprintf("%s/blueprint/sites/site", sitePath), func(path string, info os.FileInfo, err error) error {
+	filepath.Walk(fmt.Sprintf("%s/blueprint/sites/site", sitePath), func(path string, info os.FileInfo, err error) error {
 		if err == nil {
 			if info.Name() == "kustomization.yaml" {
 				readKustomization, err := ioutil.ReadFile(path)
@@ -317,6 +308,20 @@ func (s Site) PrepareManifests() {
 
 		return nil
 	})
+}
+
+// using the downloaded site content, prepares the manifests for it
+func (s Site) PrepareManifests() {
+	sitePath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
+	log.Println(fmt.Sprintf("Preparing manifests for %s", s.siteName))
+
+	// do the initial validation of pre-requisites
+	utils.ValidateRequirements(s.buildPath, s.siteName)
+	binariesPath := fmt.Sprintf("%s/requirements", sitePath)
+
+	// retrieve profile path and clone the repo
+	_, profileLayerPath, profileRef := s.GetProfileFromSite()
+	s.DownloadRepo(sitePath, profileLayerPath, profileRef)
 
 	// generate openshift-install manifests based on phase 00_install-config
 	assetsPath := fmt.Sprintf("%s/generated_assets", sitePath)
@@ -338,6 +343,7 @@ func (s Site) PrepareManifests() {
 	}
 
 	// now generate the manifests
+	var envVars []string
 	utils.ExecuteCommand("", envVars, true, true, fmt.Sprintf("%s/openshift-install", binariesPath), "create", "manifests", fmt.Sprintf("--dir=%s", assetsPath), "--log-level", "debug")
 	// iterate over all the generated files and create a kustomization file
 	f, err := os.Create(fmt.Sprintf("%s/kustomization.yaml", assetsPath))
@@ -400,6 +406,10 @@ func (s Site) ApplyWorkloads(kubeconfigFile string) {
 		}
 	}
 	binariesPath := fmt.Sprintf("%s/requirements", siteBuildPath)
+
+	// retrieve profile path and clone the repo
+	_, profileLayerPath, profileRef := s.GetProfileFromSite()
+	s.DownloadRepo(siteBuildPath, profileLayerPath, profileRef)
 
 	log.Println(fmt.Sprintf("Applying workloads from %s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
 	out := utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
