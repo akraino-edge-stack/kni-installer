@@ -45,9 +45,17 @@ var applyWorkloadsCmd = &cobra.Command{
 			buildPath = fmt.Sprintf("%s/.kni", os.Getenv("HOME"))
 		}
 
+		kubeconfig, _ := cmd.Flags().GetString("kubeconfig")
+		if len(kubeconfig) == 0 {
+			// set to default value
+			kubeconfig = fmt.Sprintf("%s/final_manifests/auth/kubeconfig", buildPath)
+		} else if kubeconfig == "local" {
+			kubeconfig = ""
+		}
+
 		// define a site object and proceed with applying workloads
 		s := site.NewWithName(siteName, buildPath)
-		s.ApplyWorkloads()
+		s.ApplyWorkloads(kubeconfig)
 	},
 }
 
@@ -55,5 +63,6 @@ func init() {
 	rootCmd.AddCommand(applyWorkloadsCmd)
 
 	applyWorkloadsCmd.Flags().StringP("build_path", "", "", "Directory to use as build path. If that not exists, the installer will generate a default directory")
+	applyWorkloadsCmd.Flags().StringP("kubeconfig", "", "", "Path to kubeconfig file. By default it will be the one generated with prepare_manifests. If set to 'local', no kubeconfig will be used and it will assume running on local cluster")
 
 }

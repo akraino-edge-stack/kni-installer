@@ -68,7 +68,10 @@ func ApplyKubectl(kubectlBinary string, kubectlContent []byte, kubeconfigPath st
 		os.Exit(1)
 	}
 
-	envVars := []string{fmt.Sprintf("KUBECONFIG=%s", kubeconfigPath)}
+	var envVars []string
+	if len(kubeconfigPath) > 0 {
+		envVars = []string{fmt.Sprintf("KUBECONFIG=%s", kubeconfigPath)}
+	}
 	for i := 1; i <= 5; i++ {
 		_, err := ExecuteCommand("", envVars, false, true, kubectlBinary, "apply", "-f", tmpFile.Name())
 
