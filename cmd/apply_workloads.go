@@ -48,7 +48,7 @@ var applyWorkloadsCmd = &cobra.Command{
 		kubeconfig, _ := cmd.Flags().GetString("kubeconfig")
 		if len(kubeconfig) == 0 {
 			// set to default value
-			kubeconfig = fmt.Sprintf("%s/final_manifests/auth/kubeconfig", buildPath)
+			kubeconfig = fmt.Sprintf("%s/%s/final_manifests/auth/kubeconfig", buildPath, siteName)
 		} else if kubeconfig == "local" {
 			kubeconfig = ""
 		}
