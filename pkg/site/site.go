@@ -2,7 +2,9 @@ package site
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -433,4 +435,98 @@ func (s Site) ApplyWorkloads(kubeconfigFile string) {
 	} else {
 		log.Println(fmt.Sprintf("No manifests found for %s", servicesPath))
 	}
+}
+
+// Determines site profile type based on blueprint profile contents
+func (s Site) getProfileType(profileName string) (string, error) {
+	if profileName == "" || s.buildPath == "" || s.siteName == "" {
+		return "", errors.New("Site: getProfileType: profile name, build path and/or site name missing")
+	}
+
+	sitePath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
+	installConfigDirPath := fmt.Sprintf("%s/%s/00_install-config/", sitePath, profileName)
+
+	// Check that blueprint profile install config directory is available
+	_, err := os.Stat(installConfigDirPath)
+
+	if err != nil {
+		return "", errors.New("Site: getProfileType: blueprint profile install config directory not found")
+	}
+
+	var profileType string
+
+	// Try to find an install-config yaml file of some sort
+	err = filepath.Walk(installConfigDirPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Not interested in directories, so just keep walking
+		if info.IsDir() {
+			return nil
+		}
+
+		if strings.Contains(info.Name(), "install-config") {
+			filename, _ := filepath.Abs(path)
+			installConfigFile, err := ioutil.ReadFile(filename)
+
+			if err != nil {
+				return err
+			}
+
+			// Empty file is useless, so just keep walking
+			if len(installConfigFile) == 0 {
+				return nil
+			}
+
+			var installConfig map[string]interface{}
+
+			err = yaml.Unmarshal(installConfigFile, &installConfig)
+
+			if err != nil {
+				return err
+			}
+
+			// Check unmarshalled YAML for a "platform" map
+			if platformIntf, ok := installConfig["platform"].(map[interface{}]interface{}); ok {
+				// "platform" map found, so check for certain keys
+				for key := range platformIntf {
+					switch key.(string) {
+					case "aws":
+						profileType = "aws"
+						break
+					case "libvirt":
+						profileType = "libvirt"
+						break
+					case "none":
+						profileType = "baremetal"
+						break
+					}
+				}
+			}
+
+			// If we found a profile type, return io.EOF error to force walk to break
+			// (we'll catch this below and treat it as a non-error)
+			if profileType != "" {
+				return io.EOF
+			}
+		}
+
+		return nil
+	})
+
+	// io.EOF error indicates success, but anything else is an actual error
+	if err != nil && err != io.EOF {
+		return "", fmt.Errorf("Site: getProfileType: error walking blueprint profile install-config directory: %s", err)
+	}
+
+	// If we found a profile type, return it
+	if profileType != "" {
+		return profileType, nil
+	}
+
+	// Warn that we were unable to find a profile type
+	log.Println("WARNING: Site: getProfileType: unable to determine site profile type")
+
+	return "", nil
 }
