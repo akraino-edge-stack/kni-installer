@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -125,7 +126,8 @@ func (s Site) GetProfileFromSite() (string, string, string) {
 	return "", "", ""
 }
 
-// using the downloaded site content, fetches (and builds) the specified requirements
+// using the downloaded site content, fetches (and builds) the specified requirements,
+// and also runs any required host preparation scripts for the site's profile type
 func (s Site) FetchRequirements(individualRequirements []string) {
 	log.Println(fmt.Sprintf("Downloading requirements for %s", s.siteName))
 	sitePath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
@@ -183,6 +185,21 @@ func (s Site) FetchRequirements(individualRequirements []string) {
 		}
 		r := requirements.New(binaryName, strings.TrimSpace(requirementsBits[1]), fmt.Sprintf("%s/requirements", sitePath))
 		r.FetchRequirement()
+	}
+
+	// Call any host preparation scripts that the profile type requires
+	profileType, err := s.getProfileType(profileName)
+
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+
+	err = s.prepareHostForAutomation(profileType)
+
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
 	}
 
 	// remove profile folder
@@ -529,4 +546,80 @@ func (s Site) getProfileType(profileName string) (string, error) {
 	log.Println("WARNING: Site: getProfileType: unable to determine site profile type")
 
 	return "", nil
+}
+
+func (s Site) prepareHostForAutomation(profileType string) error {
+	if s.buildPath == "" || s.siteName == "" {
+		return errors.New("Site: prepareHostForAutomation: build path and/or site name missing")
+	}
+
+	switch profileType {
+	case "baremetal":
+		// Download kni-upi-lab repo
+		// TODO: parameterize upi lab repo?
+		automationSource := "git::https://github.com/abays/kni-upi-lab.git"
+		automationDestination := fmt.Sprintf("%s/%s/baremetal_automation", s.buildPath, s.siteName)
+
+		log.Printf("Site: prepareHostForAutomation: downloading baremetal automation repo (%s)\n", automationSource)
+
+		client := &getter.Client{Src: automationSource, Dst: automationDestination, Mode: getter.ClientModeAny}
+		err := client.Get()
+
+		if err != nil {
+			return fmt.Errorf("Site: prepareHostForAutomation: error cloning baremetal automation repository: %s", err)
+		}
+
+		// Defer clean-up
+		defer func() {
+			log.Printf("Site: prepareHostForAutomation: removing baremetal automation repo (%s)\n", automationDestination)
+			os.RemoveAll(automationDestination)
+		}()
+
+		// Copy the site's site-config.yaml into the automation repo
+		siteConfigSourcePath := fmt.Sprintf("%s/%s/site/00_install-config/site-config.yaml", s.buildPath, s.siteName)
+
+		siteConfigSource, err := os.Open(siteConfigSourcePath)
+
+		if err != nil {
+			return fmt.Errorf("Site: prepareHostForAutomation: error opening source site config file: %s", err)
+		}
+
+		defer siteConfigSource.Close()
+
+		// Remove the existing automation site config, if any
+		siteConfigDestinationPath := fmt.Sprintf("%s/cluster/site-config.yaml", automationDestination)
+		os.RemoveAll(siteConfigDestinationPath)
+
+		siteConfigDestination, err := os.OpenFile(siteConfigDestinationPath, os.O_RDWR|os.O_CREATE, 0666)
+
+		if err != nil {
+			return fmt.Errorf("Site: prepareHostForAutomation: error opening destination site config file: %s", err)
+		}
+
+		defer siteConfigDestination.Close()
+
+		_, err = io.Copy(siteConfigDestination, siteConfigSource)
+
+		if err != nil {
+			return fmt.Errorf("Site: prepareHostForAutomation: error writing destination site config file: %s", err)
+		}
+
+		// Execute automation's prep_bm_host script
+		cmd := exec.Command(fmt.Sprintf("%s/prep_bm_host.sh", automationDestination))
+		cmd.Dir = automationDestination
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		log.Println("Site: prepareHostForAutomation: running automation host preparation script...")
+
+		err = cmd.Run()
+
+		if err != nil {
+			return fmt.Errorf("Site: prepareHostForAutomation: error running automation host preparation script")
+		}
+
+		log.Println("Site: prepareHostForAutomation: finished running automation host preparation script")
+	}
+
+	return nil
 }
