@@ -36,3 +36,7 @@
 [[constraint]]
   name = "github.com/hashicorp/go-getter"
   version = "1.2.0"
+
+[[constraint]]
+  name = "github.com/otiai10/copy"
+  version = "1.0.2"

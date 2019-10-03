@@ -111,11 +111,27 @@ func ExecuteCommand(directory string, envVars []string, failFatal bool, showOutp
 
 	if err != nil {
 		if failFatal {
-			log.Fatal(fmt.Sprintf("Error applying command: %s - %s", err, errb.String()))
+			log.Fatal(fmt.Sprintf("Error applying command %s (%s): %s - %s", name, arg, err, errb.String()))
 			os.Exit(1)
 		} else {
-			log.Println(fmt.Sprintf("Error applying command: %s - %s", err, errb.String()))
+			log.Println(fmt.Sprintf("Error applying command %s (%s): %s - %s", name, arg, err, errb.String()))
 		}
 	}
 	return outb.Bytes(), errb.Bytes()
+}
+
+func CopyFile(sourcePath string, destinationPath string) error {
+	sourceContents, err := ioutil.ReadFile(sourcePath)
+
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(destinationPath, sourceContents, 0)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
