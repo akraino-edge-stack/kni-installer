@@ -8,15 +8,16 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
 
+	"gerrit.akraino.org/kni/installer/pkg/automation"
 	"gerrit.akraino.org/kni/installer/pkg/manifests"
 	"gerrit.akraino.org/kni/installer/pkg/requirements"
 	"gerrit.akraino.org/kni/installer/pkg/utils"
 	getter "github.com/hashicorp/go-getter"
+	"github.com/otiai10/copy"
 	"gopkg.in/yaml.v2"
 )
 
@@ -335,12 +336,26 @@ func (s Site) PrepareManifests() {
 	_, profileLayerPath, profileRef := s.GetProfileFromSite()
 	s.DownloadRepo(sitePath, profileLayerPath, profileRef)
 
+	// create automation sub-directory to store a copy of anything that might be
+	// needed if automation is later requested
+	automationPath := fmt.Sprintf("%s/automation", sitePath)
+	os.Mkdir(automationPath, 0755)
+
+	// copy 00_install-config directory contents into automation sub-directory
+	installConfigDirPath := fmt.Sprintf("%s/blueprint/sites/site/00_install-config", sitePath)
+	err := copy.Copy(installConfigDirPath, automationPath)
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error copying 00_install-config directory: %s", err))
+		os.Exit(1)
+	}
+
 	// generate openshift-install manifests based on phase 00_install-config
 	assetsPath := fmt.Sprintf("%s/generated_assets", sitePath)
 	os.RemoveAll(assetsPath)
 	os.Mkdir(assetsPath, 0755)
 
-	out := utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/00_install-config", sitePath))
+	out := utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), installConfigDirPath)
 	// check if we have any content and write to the target file
 	if len(out) > 0 {
 		err := ioutil.WriteFile(fmt.Sprintf("%s/install-config.yaml", assetsPath), out, 0644)
@@ -349,6 +364,13 @@ func (s Site) PrepareManifests() {
 			os.Exit(1)
 		}
 
+		// create a copy of final install-config.yaml in site automation sub-directory
+		// in case automation is later requested
+		err = ioutil.WriteFile(fmt.Sprintf("%s/install-config.yaml", automationPath), out, 0644)
+		if err != nil {
+			log.Fatal(fmt.Sprintf("Error writing final install-config file to automation assets directory: %s", err))
+			os.Exit(1)
+		}
 	} else {
 		log.Fatal("Error, kustomize did not return any content")
 		os.Exit(1)
@@ -454,7 +476,7 @@ func (s Site) getProfileType(profileName string) (string, error) {
 	_, err := os.Stat(installConfigDirPath)
 
 	if err != nil {
-		return "", errors.New("Site: getProfileType: blueprint profile install config directory not found")
+		return "", fmt.Errorf("Site: getProfileType: blueprint profile install config directory (%s) not found", installConfigDirPath)
 	}
 
 	var profileType string
@@ -540,109 +562,34 @@ func (s Site) prepareHostForAutomation(profileName string) error {
 		return errors.New("Site: prepareHostForAutomation: build path and/or site name missing")
 	}
 
-	// Examine site's site-config and determine if any preparation in fact
-	// needs to be done
-	siteConfigSourcePath := fmt.Sprintf("%s/%s/site/00_install-config/site-config.yaml", s.buildPath, s.siteName)
-	filename, _ := filepath.Abs(siteConfigSourcePath)
-	siteConfigFile, err := ioutil.ReadFile(filename)
-
-	if err != nil {
-		return fmt.Errorf("Site: prepareHostForAutomation: error reading site-config.yaml: %s", err)
-	}
-
-	// Empty file is useless, so just abort
-	if len(siteConfigFile) == 0 {
-		return nil
-	}
-
-	var siteConfig map[string]interface{}
-
-	err = yaml.Unmarshal(siteConfigFile, &siteConfig)
-
-	if err != nil {
-		return fmt.Errorf("Site: prepareHostForAutomation: error unmarshalling site-config.yaml: %s", err)
-	}
-
-	// Check unmarshalled YAML for a "provisioningInfrastructure" map.  If it has one, this indicates
-	// that this site requires host preparation, and we have to continue.  Otherwise, we're done.
-	if _, ok := siteConfig["provisioningInfrastructure"].(map[interface{}]interface{}); !ok {
-		// Nothing to do, so just abort
-		return nil
-	}
-
-	// We DO require host preparation, so determine profile type
+	// Determine profile type
 	profileType, err := s.getProfileType(profileName)
 
 	if err != nil {
 		return err
 	}
 
-	// Now we know site profile type (if any), so call automation for that profile type (if any)
-	switch profileType {
-	case "baremetal":
-		// Download kni-upi-lab repo
-		// TODO: parameterize upi lab repo?
-		automationSource := "github.com/redhat-nfvpe/kni-upi-lab.git"
-		automationDestination := fmt.Sprintf("%s/%s/baremetal_automation", s.buildPath, s.siteName)
+	// Attempt to create an automated deployment instance
+	automatedDeployment, err := automation.New(profileType, s.buildPath, s.siteName, s.siteRepo)
 
-		log.Printf("Site: prepareHostForAutomation: downloading baremetal automation repo (%s)\n", automationSource)
-
-		client := &getter.Client{Src: automationSource, Dst: automationDestination, Mode: getter.ClientModeAny}
-		err := client.Get()
-
-		if err != nil {
-			return fmt.Errorf("Site: prepareHostForAutomation: error cloning baremetal automation repository: %s", err)
+	if err != nil {
+		// If automation isn't supported for this profile type, it's not a fatal error in
+		// this context, since this function is just trying to prepare the host for potential
+		// automation (and is not called in the context of an explicit automation request)
+		if strings.Contains(err.Error(), "automation not supported") {
+			return nil
 		}
 
-		// Defer clean-up
-		defer func() {
-			log.Printf("Site: prepareHostForAutomation: removing baremetal automation repo (%s)\n", automationDestination)
-			os.RemoveAll(automationDestination)
-		}()
-
-		// Copy the site's site-config.yaml into the automation repo
-		siteConfigSource, err := os.Open(siteConfigSourcePath)
-
-		if err != nil {
-			return fmt.Errorf("Site: prepareHostForAutomation: error opening source site config file: %s", err)
-		}
-
-		defer siteConfigSource.Close()
-
-		// Remove the existing automation site config, if any
-		siteConfigDestinationPath := fmt.Sprintf("%s/cluster/site-config.yaml", automationDestination)
-		os.RemoveAll(siteConfigDestinationPath)
-
-		siteConfigDestination, err := os.OpenFile(siteConfigDestinationPath, os.O_RDWR|os.O_CREATE, 0666)
-
-		if err != nil {
-			return fmt.Errorf("Site: prepareHostForAutomation: error opening destination site config file: %s", err)
-		}
-
-		defer siteConfigDestination.Close()
-
-		_, err = io.Copy(siteConfigDestination, siteConfigSource)
-
-		if err != nil {
-			return fmt.Errorf("Site: prepareHostForAutomation: error writing destination site config file: %s", err)
-		}
-
-		// Execute automation's prep_bm_host script
-		cmd := exec.Command(fmt.Sprintf("%s/prep_bm_host.sh", automationDestination))
-		cmd.Dir = automationDestination
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-
-		log.Println("Site: prepareHostForAutomation: running automation host preparation script...")
-
-		err = cmd.Run()
-
-		if err != nil {
-			return fmt.Errorf("Site: prepareHostForAutomation: error running automation host preparation script")
-		}
-
-		log.Println("Site: prepareHostForAutomation: finished running automation host preparation script")
+		// Anything else should be treated as an error
+		return err
 	}
 
-	return nil
+	// If automatedDeployment is nil, then automation isn't required/supported
+	// for this particular site, which isn't an error in this context
+	if automatedDeployment == nil {
+		return nil
+	}
+
+	// Tell the automated deployment instance to prepare the host for automation
+	return automatedDeployment.PrepareBastion()
 }
