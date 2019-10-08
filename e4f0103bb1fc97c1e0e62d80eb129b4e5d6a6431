@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b9891377_1c15962b",
+        "filename": "cmd/automate_masters_deployment.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-10-08T12:58:46Z",
+      "side": 1,
+      "message": "well, thanks for the credits, but that should be you :)",
+      "range": {
+        "startLine": 1,
+        "startChar": 29,
+        "endLine": 1,
+        "endChar": 37
+      },
+      "revId": "e4f0103bb1fc97c1e0e62d80eb129b4e5d6a6431",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28b85409_08291f07",
+        "filename": "cmd/automate_masters_deployment.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-10-08T12:58:46Z",
+      "side": 1,
+      "message": "sounds as a long name to me... what do you think of deploy_masters \u003csiteName\u003e ?",
+      "range": {
+        "startLine": 28,
+        "startChar": 20,
+        "endLine": 28,
+        "endChar": 47
+      },
+      "revId": "e4f0103bb1fc97c1e0e62d80eb129b4e5d6a6431",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "770a0874_31ae855b",
+        "filename": "cmd/automate_workers_deployment.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-10-08T12:58:46Z",
+      "side": 1,
+      "message": "same comment about author",
+      "range": {
+        "startLine": 1,
+        "startChar": 29,
+        "endLine": 1,
+        "endChar": 37
+      },
+      "revId": "e4f0103bb1fc97c1e0e62d80eb129b4e5d6a6431",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e759872_ae29c0ac",
+        "filename": "cmd/automate_workers_deployment.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2019-10-08T12:58:46Z",
+      "side": 1,
+      "message": "Same, deploy_workers \u003csiteName\u003e ?",
+      "range": {
+        "startLine": 28,
+        "startChar": 20,
+        "endLine": 28,
+        "endChar": 47
+      },
+      "revId": "e4f0103bb1fc97c1e0e62d80eb129b4e5d6a6431",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    }
+  ]
+}
