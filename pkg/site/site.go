@@ -341,7 +341,8 @@ func (s Site) PrepareManifests() {
 	automationPath := fmt.Sprintf("%s/automation", sitePath)
 	os.Mkdir(automationPath, 0755)
 
-	// copy 00_install-config directory contents into automation sub-directory
+	// copy 00_install-config directory contents (minus kustomization.yaml)
+	// into automation sub-directory
 	installConfigDirPath := fmt.Sprintf("%s/blueprint/sites/site/00_install-config", sitePath)
 	err := copy.Copy(installConfigDirPath, automationPath)
 
@@ -349,6 +350,10 @@ func (s Site) PrepareManifests() {
 		log.Fatal(fmt.Sprintf("Error copying 00_install-config directory: %s", err))
 		os.Exit(1)
 	}
+
+	// Remove kustomization from automation sub-directory (the copy library used
+	// above does not allow for filtering files when copying directories)
+	os.Remove(fmt.Sprintf("%s/kustomization.yaml", automationPath))
 
 	// generate openshift-install manifests based on phase 00_install-config
 	assetsPath := fmt.Sprintf("%s/generated_assets", sitePath)
@@ -463,6 +468,73 @@ func (s Site) ApplyWorkloads(kubeconfigFile string) {
 	}
 }
 
+func (s Site) AutomateMastersDeployment() {
+	// Run the automated deployment
+	err := s.automateDeployment("masters")
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Site: AutomateMastersDeployment: Error attempting to run automated deployment: %s", err))
+		os.Exit(1)
+	}
+}
+
+func (s Site) AutomateWorkersDeployment() {
+	// Run the automated deployment
+	err := s.automateDeployment("workers")
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Site: AutomateWorkersDeployment: Error attempting to run automated deployment: %s", err))
+		os.Exit(1)
+	}
+}
+
+func (s Site) automateDeployment(deploymentType string) error {
+	// Get profile name
+	profileName, _, _ := s.GetProfileFromSite()
+
+	// Get the profile type
+	// NOTE: This also checks whether the site repo exists locally, so there is no
+	//       need to check that here
+	profileType, err := s.getProfileType(profileName)
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Site: automateDeployment: Error acquiring site profile type: %s", err))
+		os.Exit(1)
+	}
+
+	// Create an automated deployment instance
+	automatedDeploymentParams := automation.AutomatedDeploymentParams{
+		ProfileType:   profileType,
+		SiteBuildPath: s.buildPath,
+		SiteName:      s.siteName,
+		SiteRepo:      s.siteRepo,
+	}
+
+	automatedDeployment, err := automation.New(automatedDeploymentParams)
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Site: automateDeployment: Error creating automated deployment instance: %s", err))
+		os.Exit(1)
+	}
+
+	// If nil is returned for automatedDeployment, then this particular site does
+	// not contain the necessary config required to automate its deployment
+	if automatedDeployment == nil {
+		return fmt.Errorf("Site: automateDeployment: automated deployment not supported for site '%s'", s.siteName)
+	}
+
+	switch deploymentType {
+	case "masters":
+		return automatedDeployment.DeployMasters()
+	case "workers":
+		return automatedDeployment.DeployWorkers()
+	default:
+		return fmt.Errorf("Site: automateDeployment: unknown deployment type: %s", deploymentType)
+	}
+
+	return nil
+}
+
 // Determines site profile type based on blueprint profile contents
 func (s Site) getProfileType(profileName string) (string, error) {
 	if profileName == "" || s.buildPath == "" || s.siteName == "" {
@@ -476,7 +548,14 @@ func (s Site) getProfileType(profileName string) (string, error) {
 	_, err := os.Stat(installConfigDirPath)
 
 	if err != nil {
-		return "", fmt.Errorf("Site: getProfileType: blueprint profile install config directory (%s) not found", installConfigDirPath)
+		// Check the other possible location
+		installConfigDirPath = fmt.Sprintf("%s/blueprint/profiles/%s/00_install-config", sitePath, profileName)
+
+		_, err := os.Stat(installConfigDirPath)
+
+		if err != nil {
+			return "", fmt.Errorf("Site: getProfileType: blueprint profile install config directory (%s) not found", installConfigDirPath)
+		}
 	}
 
 	var profileType string
@@ -570,7 +649,14 @@ func (s Site) prepareHostForAutomation(profileName string) error {
 	}
 
 	// Attempt to create an automated deployment instance
-	automatedDeployment, err := automation.New(profileType, s.buildPath, s.siteName, s.siteRepo)
+	automatedDeploymentParams := automation.AutomatedDeploymentParams{
+		ProfileType:   profileType,
+		SiteBuildPath: s.buildPath,
+		SiteName:      s.siteName,
+		SiteRepo:      s.siteRepo,
+	}
+
+	automatedDeployment, err := automation.New(automatedDeploymentParams)
 
 	if err != nil {
 		// If automation isn't supported for this profile type, it's not a fatal error in
