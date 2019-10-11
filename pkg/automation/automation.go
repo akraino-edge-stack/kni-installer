@@ -19,6 +19,7 @@ type AutomatedDeploymentInterface interface {
 	PrepareBastion() error // Prepare host for automation
 	DeployMasters() error  // Deploy cluster masters
 	DeployWorkers() error  // Deploy cluster workers
+	DestroyCluster() error // Destroy the cluster
 }
 
 var (

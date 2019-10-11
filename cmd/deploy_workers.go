@@ -23,7 +23,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// deployWorkersCmd represents the automate_workers_deployment command
+// deployWorkersCmd represents the deploy_workers command
 var deployWorkersCmd = &cobra.Command{
 	Use:              "deploy_workers siteName [--build_path=<local_build_path>]",
 	Short:            "Command to automate the deployment of the worker nodes of a previously-prepared site",

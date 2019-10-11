@@ -488,18 +488,55 @@ func (s Site) AutomateWorkersDeployment() {
 	}
 }
 
+func (s Site) AutomateClusterDestroy() {
+	// Get an automated deployment object
+	automatedDeployment, err := s.getAutomatedDeployment()
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Site: AutomateClusterDestroy: Error attempting to acquire automated deploy object: %s", err))
+		os.Exit(1)
+	}
+
+	// Run the automated cluster teardown
+	err = automatedDeployment.DestroyCluster()
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Site: AutomateClusterDestroy: Error attempting to run automated cluster destroy: %s", err))
+		os.Exit(1)
+	}
+}
+
 func (s Site) automateDeployment(deploymentType string) error {
+	// Get an automated deployment object
+	automatedDeployment, err := s.getAutomatedDeployment()
+
+	if err != nil {
+		return err
+	}
+
+	// Act based on the requested deployment type
+	switch deploymentType {
+	case "masters":
+		return automatedDeployment.DeployMasters()
+	case "workers":
+		return automatedDeployment.DeployWorkers()
+	default:
+		return fmt.Errorf("Site: automateDeployment: unknown deployment type: %s", deploymentType)
+	}
+}
+
+// Returns an AutomatedDeploymentInterface for use with automation operations
+func (s Site) getAutomatedDeployment() (automation.AutomatedDeploymentInterface, error) {
 	// Get profile name
 	profileName, _, _ := s.GetProfileFromSite()
 
 	// Get the profile type
-	// NOTE: This also checks whether the site repo exists locally, so there is no
+	// NOTE: This call also checks whether the site repo exists locally, so there is no
 	//       need to check that here
 	profileType, err := s.getProfileType(profileName)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Site: automateDeployment: Error acquiring site profile type: %s", err))
-		os.Exit(1)
+		return nil, fmt.Errorf("Site: getAutomatedDeployment: Error acquiring site profile type: %s", err)
 	}
 
 	// Create an automated deployment instance
@@ -513,26 +550,16 @@ func (s Site) automateDeployment(deploymentType string) error {
 	automatedDeployment, err := automation.New(automatedDeploymentParams)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Site: automateDeployment: Error creating automated deployment instance: %s", err))
-		os.Exit(1)
+		return nil, fmt.Errorf("Site: getAutomatedDeployment: Error creating automated deployment instance: %s", err)
 	}
 
 	// If nil is returned for automatedDeployment, then this particular site does
 	// not contain the necessary config required to automate its deployment
 	if automatedDeployment == nil {
-		return fmt.Errorf("Site: automateDeployment: automated deployment not supported for site '%s'", s.siteName)
+		return nil, fmt.Errorf("Site: getAutomatedDeployment: automated deployment not supported for site '%s'", s.siteName)
 	}
 
-	switch deploymentType {
-	case "masters":
-		return automatedDeployment.DeployMasters()
-	case "workers":
-		return automatedDeployment.DeployWorkers()
-	default:
-		return fmt.Errorf("Site: automateDeployment: unknown deployment type: %s", deploymentType)
-	}
-
-	return nil
+	return automatedDeployment, nil
 }
 
 // Determines site profile type based on blueprint profile contents
@@ -641,28 +668,21 @@ func (s Site) prepareHostForAutomation(profileName string) error {
 		return errors.New("Site: prepareHostForAutomation: build path and/or site name missing")
 	}
 
-	// Determine profile type
-	profileType, err := s.getProfileType(profileName)
+	// Clear any existing automation folders
+	automationManifests := fmt.Sprintf("%s/%s/automation", s.buildPath, s.siteName)
+	automationDestination := fmt.Sprintf("%s/%s/baremetal_automation", s.buildPath, s.siteName)
 
-	if err != nil {
-		return err
-	}
+	os.RemoveAll(automationManifests)
+	os.RemoveAll(automationDestination)
 
-	// Attempt to create an automated deployment instance
-	automatedDeploymentParams := automation.AutomatedDeploymentParams{
-		ProfileType:   profileType,
-		SiteBuildPath: s.buildPath,
-		SiteName:      s.siteName,
-		SiteRepo:      s.siteRepo,
-	}
-
-	automatedDeployment, err := automation.New(automatedDeploymentParams)
+	// Get an automated deployment object
+	automatedDeployment, err := s.getAutomatedDeployment()
 
 	if err != nil {
 		// If automation isn't supported for this profile type, it's not a fatal error in
 		// this context, since this function is just trying to prepare the host for potential
 		// automation (and is not called in the context of an explicit automation request)
-		if strings.Contains(err.Error(), "automation not supported") {
+		if strings.Contains(err.Error(), "automation not supported") || strings.Contains(err.Error(), "automated deployment not supported") {
 			return nil
 		}
 

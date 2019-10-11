@@ -35,6 +35,14 @@ type scriptRunInstance struct {
 	args        []string
 }
 
+type terraformOperation string
+
+const (
+	terraformApply   terraformOperation = "apply"
+	terraformDestroy terraformOperation = "destroy"
+	terraformInit    terraformOperation = "init"
+)
+
 func newBaremetal(params AutomatedDeploymentParams) (AutomatedDeploymentInterface, error) {
 	// Examine site's site-config and determine if automation is even possible for this site
 	siteConfigSourcePath := fmt.Sprintf("%s/%s/site/00_install-config/site-config.yaml", params.SiteBuildPath, params.SiteName)
@@ -197,7 +205,7 @@ func (bad baremetalAutomatedDeployment) DeployMasters() error {
 	}
 
 	// Finally run terraform commands to begin cluster deployment
-	err = bad.runTerraform(automationRepoPath, "cluster")
+	err = bad.runTerraform(automationRepoPath, "cluster", terraformApply)
 
 	if err != nil {
 		return err
@@ -352,7 +360,7 @@ func (bad baremetalAutomatedDeployment) DeployWorkers() error {
 	}
 
 	// Finally run terraform commands to begin workers deployment
-	err = bad.runTerraform(automationRepoPath, "workers")
+	err = bad.runTerraform(automationRepoPath, "workers", terraformApply)
 
 	if err != nil {
 		return err
@@ -363,13 +371,95 @@ func (bad baremetalAutomatedDeployment) DeployWorkers() error {
 	return nil
 }
 
-func (bad baremetalAutomatedDeployment) runTerraform(automationRepoPath string, targetType string) error {
+func (bad baremetalAutomatedDeployment) DestroyCluster() error {
+	sitePath := fmt.Sprintf("%s/%s", bad.siteBuildPath, bad.siteName)
+	automationRepoPath := fmt.Sprintf("%s/baremetal_automation", sitePath)
+
+	_, err := os.Stat(automationRepoPath)
+
+	if err != nil {
+		return fmt.Errorf("baremetalAutomatedDeployment: DestroyCluster: unable to access local automation repo at %s: %s", automationRepoPath, err)
+	}
+
+	// Destroy workers via terraform
+	err = bad.runTerraform(automationRepoPath, "workers", terraformDestroy)
+
+	if err != nil {
+		return err
+	}
+
+	// Destroy masters via terraform
+	// TODO: Ignoring errors here until we fix the bogus bootstrap VM destruction error
+	//       that falsely reports a problem when there isn't one (the error says that the
+	//       VM cannot be found, but this is expected because the VM was just destroyed!)
+	bad.runTerraform(automationRepoPath, "cluster", terraformDestroy)
+
+	// Remove bastion (provisioning host) containers
+	scripts := []scriptRunInstance{}
+
+	commonArgs := []string{"remove"}
+
+	scripts = append(scripts, scriptRunInstance{
+		description: "dnsmasq provisioning container removal",
+		scriptFile:  "gen_config_prov.sh",
+		args:        commonArgs,
+	})
+
+	scripts = append(scripts, scriptRunInstance{
+		description: "dnsmasq baremetal container removal",
+		scriptFile:  "gen_config_bm.sh",
+		args:        commonArgs,
+	})
+
+	scripts = append(scripts, scriptRunInstance{
+		description: "haproxy container removal",
+		scriptFile:  "gen_haproxy.sh",
+		args:        commonArgs,
+	})
+
+	scripts = append(scripts, scriptRunInstance{
+		description: "coredns container removal",
+		scriptFile:  "gen_coredns.sh",
+		args:        commonArgs,
+	})
+
+	scripts = append(scripts, scriptRunInstance{
+		description: "matchbox container removal",
+		scriptFile:  "gen_matchbox.sh",
+		args:        commonArgs,
+	})
+
+	err = bad.runScripts(automationRepoPath, scripts)
+
+	if err != nil {
+		return err
+	}
+
+	// Clear config directories
+	dirs := []string{
+		"build",
+		"coredns",
+		"dnsmasq",
+		"haproxy",
+		"ocp",
+	}
+
+	for _, dir := range dirs {
+		os.RemoveAll(fmt.Sprintf("%s/%s", automationRepoPath, dir))
+	}
+
+	log.Printf("baremetalAutomatedDeployment: DestroyCluster: cluster teardown completed\n")
+
+	return nil
+}
+
+func (bad baremetalAutomatedDeployment) runTerraform(automationRepoPath string, targetType string, operation terraformOperation) error {
 	terraformPath := fmt.Sprintf("%s/terraform/%s", automationRepoPath, targetType)
 
 	log.Printf("baremetalAutomatedDeployment: runTerraform: initializing terraform...\n")
 
 	// Init
-	cmd := exec.Command("terraform", "init")
+	cmd := exec.Command("terraform", string(terraformInit))
 	cmd.Dir = terraformPath
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -381,10 +471,10 @@ func (bad baremetalAutomatedDeployment) runTerraform(automationRepoPath string, 
 	}
 
 	log.Printf("baremetalAutomatedDeployment: runTerraform: terraform successfully initialized\n")
-	log.Printf("baremetalAutomatedDeployment: runTerraform: applying terraform...\n")
+	log.Printf("baremetalAutomatedDeployment: runTerraform: running terraform %s...\n", operation)
 
 	// Apply
-	cmd = exec.Command("terraform", "apply", "--auto-approve")
+	cmd = exec.Command("terraform", string(operation), "--auto-approve")
 	cmd.Dir = terraformPath
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -392,7 +482,7 @@ func (bad baremetalAutomatedDeployment) runTerraform(automationRepoPath string, 
 	err = cmd.Run()
 
 	if err != nil {
-		return fmt.Errorf("baremetalAutomatedDeployment: runTerraform: error running baremetal automation %s terraform apply: %s", targetType, err)
+		return fmt.Errorf("baremetalAutomatedDeployment: runTerraform: error running baremetal automation %s terraform %s: %s", targetType, operation, err)
 	}
 
 	log.Printf("baremetalAutomatedDeployment: runTerraform: terraform successfully applied\n")

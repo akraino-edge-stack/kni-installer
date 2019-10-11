@@ -23,10 +23,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// deployMastersCmd represents the deploy_masters command
-var deployMastersCmd = &cobra.Command{
-	Use:              "deploy_masters siteName [--build_path=<local_build_path>]",
-	Short:            "Command to automate the deployment of the master nodes of a previously-prepared site",
+// destroyClusterCmd represents the destroy_cluster command
+var destroyClusterCmd = &cobra.Command{
+	Use:              "destroy_cluster siteName [--build_path=<local_build_path>]",
+	Short:            "Command to automate the teardown of master and workers nodes of an automated-deployment cluster",
 	Long:             ``,
 	TraverseChildren: true,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -49,12 +49,12 @@ var deployMastersCmd = &cobra.Command{
 		// so the site directory should be available on disk already (if not,
 		// s.AutomateMastersDeployment will error-out appropriately)
 		s := site.NewWithName(siteName, buildPath)
-		s.AutomateMastersDeployment()
+		s.AutomateClusterDestroy()
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(deployMastersCmd)
+	rootCmd.AddCommand(destroyClusterCmd)
 
-	deployMastersCmd.Flags().StringP("build_path", "", "", "Directory to use as build path. If that doesn't exist, the installer will generate a default directory")
+	destroyClusterCmd.Flags().StringP("build_path", "", "", "Directory to use as build path. If that doesn't exist, the installer will generate a default directory")
 }
