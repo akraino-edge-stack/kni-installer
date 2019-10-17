@@ -35,9 +35,9 @@ mkdir $HOME/.kni || true
 cp $WORKSPACE/akraino-secrets/coreos-pull-secret $HOME/.kni/pull-secret.json || true
 
 # replace site path with a local ref to the cloned blueprint
-BLUEPRINT_PATH="${WORKSPACE}/blueprint-pae/"
+BLUEPRINT_PATH="${WORKSPACE}/${GIT_CHECKOUT_DIR}/"
 KUSTOMIZATION_FILE=${BLUEPRINT_PATH}/sites/${SITE_NAME}/00_install-config/kustomization.yaml
-sed -i "s#- git::https://gerrit.akraino.org/r/kni/blueprint-pae.git/#- file://${BLUEPRINT_PATH}#g" ${KUSTOMIZATION_FILE}
+sed -i "s#- git::https://gerrit.akraino.org/r/kni/${GIT_CHECKOUT_DIR}.git/#- file://${BLUEPRINT_PATH}#g" ${KUSTOMIZATION_FILE}
 
 # start the workflow
 sudo rm -rf /$HOME/.kni/${SITE_NAME}/final_manifests || true
