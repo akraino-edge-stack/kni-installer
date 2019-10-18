@@ -161,6 +161,8 @@ func (s Site) FetchRequirements(individualRequirements []string) {
 	}
 	defer file.Close()
 
+	parsedRequirements := map[string]string{}
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		requirementsLine := scanner.Text()
@@ -168,6 +170,13 @@ func (s Site) FetchRequirements(individualRequirements []string) {
 		// requirements is composed of binary and source
 		requirementsBits := strings.SplitN(strings.TrimSpace(requirementsLine), ":", 2)
 		binaryName := strings.TrimSpace(requirementsBits[0])
+		binarySource := strings.TrimSpace(requirementsBits[1])
+
+		// Store requirement for use in call to prepareHostForAutomation, regardless of
+		// what happens with the "individualRequirements" check below.  If automation is
+		// in fact used later on, we want to honor the potential "oc" and "openshift-install"
+		// binary versions set in the blueprint profile's "requirements.yaml"
+		parsedRequirements[binaryName] = binarySource
 
 		// if we have individual requirements list, check if we have the requirement on it. Otherwise, skip
 		if len(individualRequirements) > 0 {
@@ -184,12 +193,12 @@ func (s Site) FetchRequirements(individualRequirements []string) {
 				continue
 			}
 		}
-		r := requirements.New(binaryName, strings.TrimSpace(requirementsBits[1]), fmt.Sprintf("%s/requirements", sitePath))
+		r := requirements.New(binaryName, binarySource, fmt.Sprintf("%s/requirements", sitePath))
 		r.FetchRequirement()
 	}
 
 	// Checks for and executes any required host preparation for this site
-	err = s.prepareHostForAutomation(profileName)
+	err = s.prepareHostForAutomation(profileName, parsedRequirements)
 
 	if err != nil {
 		log.Fatal(err)
@@ -663,7 +672,7 @@ func (s Site) getProfileType(profileName string) (string, error) {
 	return "", nil
 }
 
-func (s Site) prepareHostForAutomation(profileName string) error {
+func (s Site) prepareHostForAutomation(profileName string, requirements map[string]string) error {
 	if s.buildPath == "" || s.siteName == "" {
 		return errors.New("Site: prepareHostForAutomation: build path and/or site name missing")
 	}
@@ -697,5 +706,5 @@ func (s Site) prepareHostForAutomation(profileName string) error {
 	}
 
 	// Tell the automated deployment instance to prepare the host for automation
-	return automatedDeployment.PrepareBastion()
+	return automatedDeployment.PrepareBastion(requirements)
 }

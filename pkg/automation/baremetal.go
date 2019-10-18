@@ -8,7 +8,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
+	"gerrit.akraino.org/kni/installer/pkg/utils"
 	"github.com/otiai10/copy"
 
 	getter "github.com/hashicorp/go-getter"
@@ -75,7 +77,7 @@ func newBaremetal(params AutomatedDeploymentParams) (AutomatedDeploymentInterfac
 	}, nil
 }
 
-func (bad baremetalAutomatedDeployment) PrepareBastion() error {
+func (bad baremetalAutomatedDeployment) PrepareBastion(requirements map[string]string) error {
 	// Download repo
 	automationDestination := fmt.Sprintf("%s/%s/baremetal_automation", bad.siteBuildPath, bad.siteName)
 
@@ -116,6 +118,56 @@ func (bad baremetalAutomatedDeployment) PrepareBastion() error {
 
 	if err != nil {
 		return fmt.Errorf("baremetalAutomatedDeployment: PrepareBastion: error writing destination site config file: %s", err)
+	}
+
+	// Examine requirements to check for oc or openshift-install version selection.
+	// If they are found, inject them into the automation's images_and_binaries.sh script
+	// to override the default
+	binaryVersionsPath := fmt.Sprintf("%s/images_and_binaries.sh", automationDestination)
+
+	for requirementName, requirementSource := range requirements {
+		switch requirementName {
+		case "oc":
+			err = utils.ReplaceFileText(binaryVersionsPath, "OCP_CLIENT_BINARY_URL=\"\"", fmt.Sprintf("OCP_CLIENT_BINARY_URL=\"%s\"", requirementSource))
+
+			if err != nil {
+				return fmt.Errorf("baremetalAutomatedDeployment: PrepareBastion: error injecting oc binary version: %s", err)
+			}
+		case "openshift-install":
+			err = utils.ReplaceFileText(binaryVersionsPath, "OCP_INSTALL_BINARY_URL=\"\"", fmt.Sprintf("OCP_INSTALL_BINARY_URL=\"%s\"", requirementSource))
+
+			if err != nil {
+				return fmt.Errorf("baremetalAutomatedDeployment: PrepareBastion: error injecting openshift-install binary version: %s", err)
+			}
+		}
+	}
+
+	// Check site-config.yaml's config block for a releaseImageOverride.  If found, extract
+	// the image's tag to get the requested version for RHCOS images, and inject that into
+	// automation's common.sh script to override the default
+	var siteConfig map[string]interface{}
+	siteConfigFile, err := ioutil.ReadFile(siteConfigDestinationPath)
+
+	err = yaml.Unmarshal(siteConfigFile, &siteConfig)
+
+	if err != nil {
+		return fmt.Errorf("baremetalAutomatedDeployment: PrepareBastion: error unmarshalling site-config.yaml: %s", err)
+	}
+
+	if config, ok := siteConfig["config"].(map[interface{}]interface{}); ok {
+		if releaseImageOverride, ok := config["releaseImageOverride"].(string); ok {
+			parts := strings.Split(releaseImageOverride, ":")
+
+			if len(parts) == 2 {
+				rhcosVersionsPath := fmt.Sprintf("%s/common.sh", automationDestination)
+
+				err = utils.ReplaceFileText(rhcosVersionsPath, "OPENSHIFT_RHCOS_MAJOR_REL=\"\"", fmt.Sprintf("OPENSHIFT_RHCOS_MAJOR_REL=\"%s\"", parts[1]))
+
+				if err != nil {
+					return fmt.Errorf("baremetalAutomatedDeployment: PrepareBastion: error injecting RHCOS image version: %s", err)
+				}
+			}
+		}
 	}
 
 	// Execute automation's prep_bm_host script
@@ -165,20 +217,7 @@ func (bad baremetalAutomatedDeployment) DeployMasters() error {
 	_, err = os.Stat(automationRepoPath)
 
 	if err != nil {
-		if !os.IsNotExist(err) {
-			return fmt.Errorf("baremetalAutomatedDeployment: DeployMasters: unable to access local automation repo at %s: %s", automationRepoPath, err)
-		}
-
-		// Doesn't exist, so clone it?
-		// NOTE: It should already exist, having been created during the "fetch_requirements" step
-		log.Printf("baremetalAutomatedDeployment: DeployMasters: downloading missing baremetal automation repo (%s)\n", automationRemoteSource)
-
-		client := &getter.Client{Src: automationRemoteSource, Dst: automationRepoPath, Mode: getter.ClientModeAny}
-		err := client.Get()
-
-		if err != nil {
-			return fmt.Errorf("baremetalAutomatedDeployment: DeployMasters: error cloning baremetal automation repository: %s", err)
-		}
+		return fmt.Errorf("baremetalAutomatedDeployment: DeployMasters: unable to access local automation repo at %s: %s", automationRepoPath, err)
 	}
 
 	// Copy final_manifests into the automation repo's ocp directory (the ocp
