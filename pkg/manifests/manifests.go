@@ -79,7 +79,7 @@ func NameFromGVKN(GVKN string) string {
 }
 
 // utility to merge manifests
-func MergeManifests(content string, siteBuildPath string) {
+func MergeManifests(content string, siteBuildPath string) string {
 	manifests := strings.Split(content, "\n---\n")
 	kustomizeManifests := make(map[string]map[interface{}]interface{})
 
@@ -216,10 +216,16 @@ func MergeManifests(content string, siteBuildPath string) {
 		log.Fatal(fmt.Sprintf("Error moving to final manifests folder: %s", err))
 		os.Exit(1)
 	} else {
-		log.Println(fmt.Sprintf("*** Manifest generation finished. You can run now: %s/requirements/openshift-install create cluster --dir=%s/final_manifests to create the site cluster ***", siteBuildPath, siteBuildPath))
-		log.Println(fmt.Sprintf("If using UPI you can generate ignition files with: %s/requirements/openshift-install create ignition-configs --dir=%s/final_manifests", siteBuildPath, siteBuildPath))
-		log.Println(fmt.Sprintf("A profile.env file has been generated inside %s/profile.env, you can source it before starting the openshift-install command", siteBuildPath))
-		log.Println(fmt.Sprintf("In order to destroy the cluster you can run:  %s/requirements/openshift-install destroy cluster --dir %s/final_manifests", siteBuildPath, siteBuildPath))
+		var builder strings.Builder
+
+		fmt.Fprintf(&builder, "*** Manifest generation finished. You can run now: %s/requirements/openshift-install create cluster --dir=%s/final_manifests to create the site cluster ***\n", siteBuildPath, siteBuildPath)
+		fmt.Fprintf(&builder, "If using UPI you can generate ignition files with: %s/requirements/openshift-install create ignition-configs --dir=%s/final_manifests", siteBuildPath, siteBuildPath)
+		fmt.Fprintf(&builder, "A profile.env file has been generated inside %s/profile.env, you can source it before starting the openshift-install command", siteBuildPath)
+		fmt.Fprintf(&builder, "In order to destroy the cluster you can run:  %s/requirements/openshift-install destroy cluster --dir %s/final_manifests", siteBuildPath, siteBuildPath)
+
+		return builder.String()
 	}
 
+	// Should never get here
+	return ""
 }

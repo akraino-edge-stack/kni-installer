@@ -77,27 +77,27 @@ func newBaremetal(params AutomatedDeploymentParams) (AutomatedDeploymentInterfac
 	}, nil
 }
 
-func (bad baremetalAutomatedDeployment) PrepareBastion(requirements map[string]string) error {
+func (bad baremetalAutomatedDeployment) PrepareAutomation(requirements map[string]string) error {
 	// Download repo
 	automationDestination := fmt.Sprintf("%s/%s/baremetal_automation", bad.siteBuildPath, bad.siteName)
 
 	// Clear baremetal automation repo if it already exists
 	os.RemoveAll(automationDestination)
 
-	log.Printf("baremetalAutomatedDeployment: PrepareBastion: downloading baremetal automation repo (%s)\n", automationRemoteSource)
+	log.Printf("baremetalAutomatedDeployment: PrepareAutomation: downloading baremetal automation repo (%s)...\n", automationRemoteSource)
 
 	client := &getter.Client{Src: automationRemoteSource, Dst: automationDestination, Mode: getter.ClientModeAny}
 	err := client.Get()
 
 	if err != nil {
-		return fmt.Errorf("baremetalAutomatedDeployment: PrepareBastion: error cloning baremetal automation repository: %s", err)
+		return fmt.Errorf("baremetalAutomatedDeployment: PrepareAutomation: error cloning baremetal automation repository: %s", err)
 	}
 
 	// Copy the site's site-config.yaml into the automation repo
 	siteConfigSource, err := os.Open(fmt.Sprintf("%s/%s/site/00_install-config/site-config.yaml", bad.siteBuildPath, bad.siteName))
 
 	if err != nil {
-		return fmt.Errorf("baremetalAutomatedDeployment: PrepareBastion: error opening source site config file: %s", err)
+		return fmt.Errorf("baremetalAutomatedDeployment: PrepareAutomation: error opening source site config file: %s", err)
 	}
 
 	defer siteConfigSource.Close()
@@ -109,7 +109,7 @@ func (bad baremetalAutomatedDeployment) PrepareBastion(requirements map[string]s
 	siteConfigDestination, err := os.OpenFile(siteConfigDestinationPath, os.O_RDWR|os.O_CREATE, 0666)
 
 	if err != nil {
-		return fmt.Errorf("baremetalAutomatedDeployment: PrepareBastion: error opening destination site config file: %s", err)
+		return fmt.Errorf("baremetalAutomatedDeployment: PrepareAutomation: error opening destination site config file: %s", err)
 	}
 
 	defer siteConfigDestination.Close()
@@ -117,8 +117,12 @@ func (bad baremetalAutomatedDeployment) PrepareBastion(requirements map[string]s
 	_, err = io.Copy(siteConfigDestination, siteConfigSource)
 
 	if err != nil {
-		return fmt.Errorf("baremetalAutomatedDeployment: PrepareBastion: error writing destination site config file: %s", err)
+		return fmt.Errorf("baremetalAutomatedDeployment: PrepareAutomation: error writing destination site config file: %s", err)
 	}
+
+	log.Printf("baremetalAutomatedDeployment: PrepareAutomation: finished downloading baremetal automation repo (%s)\n", automationRemoteSource)
+
+	log.Printf("baremetalAutomatedDeployment: PrepareAutomation: injecting version selections into automation repo...\n")
 
 	// Examine requirements to check for oc or openshift-install version selection.
 	// If they are found, inject them into the automation's images_and_binaries.sh script
@@ -131,13 +135,13 @@ func (bad baremetalAutomatedDeployment) PrepareBastion(requirements map[string]s
 			err = utils.ReplaceFileText(binaryVersionsPath, "OCP_CLIENT_BINARY_URL=\"\"", fmt.Sprintf("OCP_CLIENT_BINARY_URL=\"%s\"", requirementSource))
 
 			if err != nil {
-				return fmt.Errorf("baremetalAutomatedDeployment: PrepareBastion: error injecting oc binary version: %s", err)
+				return fmt.Errorf("baremetalAutomatedDeployment: PrepareAutomation: error injecting oc binary version: %s", err)
 			}
 		case "openshift-install":
 			err = utils.ReplaceFileText(binaryVersionsPath, "OCP_INSTALL_BINARY_URL=\"\"", fmt.Sprintf("OCP_INSTALL_BINARY_URL=\"%s\"", requirementSource))
 
 			if err != nil {
-				return fmt.Errorf("baremetalAutomatedDeployment: PrepareBastion: error injecting openshift-install binary version: %s", err)
+				return fmt.Errorf("baremetalAutomatedDeployment: PrepareAutomation: error injecting openshift-install binary version: %s", err)
 			}
 		}
 	}
@@ -151,7 +155,7 @@ func (bad baremetalAutomatedDeployment) PrepareBastion(requirements map[string]s
 	err = yaml.Unmarshal(siteConfigFile, &siteConfig)
 
 	if err != nil {
-		return fmt.Errorf("baremetalAutomatedDeployment: PrepareBastion: error unmarshalling site-config.yaml: %s", err)
+		return fmt.Errorf("baremetalAutomatedDeployment: PrepareAutomation: error unmarshalling site-config.yaml: %s", err)
 	}
 
 	if config, ok := siteConfig["config"].(map[interface{}]interface{}); ok {
@@ -164,11 +168,19 @@ func (bad baremetalAutomatedDeployment) PrepareBastion(requirements map[string]s
 				err = utils.ReplaceFileText(rhcosVersionsPath, "OPENSHIFT_RHCOS_MAJOR_REL=\"\"", fmt.Sprintf("OPENSHIFT_RHCOS_MAJOR_REL=\"%s\"", parts[1]))
 
 				if err != nil {
-					return fmt.Errorf("baremetalAutomatedDeployment: PrepareBastion: error injecting RHCOS image version: %s", err)
+					return fmt.Errorf("baremetalAutomatedDeployment: PrepareAutomation: error injecting RHCOS image version: %s", err)
 				}
 			}
 		}
 	}
+
+	log.Printf("baremetalAutomatedDeployment: PrepareAutomation: finished injecting version selections into automation repo\n")
+
+	return nil
+}
+
+func (bad baremetalAutomatedDeployment) FinalizeAutomation() error {
+	automationDestination := fmt.Sprintf("%s/%s/baremetal_automation", bad.siteBuildPath, bad.siteName)
 
 	// Execute automation's prep_bm_host script
 	cmd := exec.Command(fmt.Sprintf("%s/prep_bm_host.sh", automationDestination))
@@ -176,15 +188,15 @@ func (bad baremetalAutomatedDeployment) PrepareBastion(requirements map[string]s
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	log.Println("baremetalAutomatedDeployment: PrepareBastion: running baremetal automation host preparation script...")
+	log.Println("baremetalAutomatedDeployment: FinalizeAutomation: running baremetal automation host preparation script...")
 
-	err = cmd.Run()
+	err := cmd.Run()
 
 	if err != nil {
-		return fmt.Errorf("baremetalAutomatedDeployment: PrepareBastion: error running baremetal automation host preparation script")
+		return fmt.Errorf("baremetalAutomatedDeployment: FinalizeAutomation: error running baremetal automation host preparation script")
 	}
 
-	log.Println("baremetalAutomatedDeployment: PrepareBastion: finished running automation host preparation script")
+	log.Println("baremetalAutomatedDeployment: FinalizeAutomation: finished running automation host preparation script")
 
 	return nil
 }

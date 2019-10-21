@@ -16,10 +16,11 @@ type AutomatedDeploymentParams struct {
 }
 
 type AutomatedDeploymentInterface interface {
-	PrepareBastion(map[string]string) error // Prepare host for automation
-	DeployMasters() error                   // Deploy cluster masters
-	DeployWorkers() error                   // Deploy cluster workers
-	DestroyCluster() error                  // Destroy the cluster
+	PrepareAutomation(map[string]string) error // Initial host preparation for automation, before finalizing manifests
+	FinalizeAutomation() error                 // Final host preparation for automation, after finalizing manifests
+	DeployMasters() error                      // Deploy cluster masters
+	DeployWorkers() error                      // Deploy cluster workers
+	DestroyCluster() error                     // Destroy the cluster
 }
 
 var (

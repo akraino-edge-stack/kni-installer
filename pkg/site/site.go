@@ -128,7 +128,7 @@ func (s Site) GetProfileFromSite() (string, string, string) {
 }
 
 // using the downloaded site content, fetches (and builds) the specified requirements,
-// and also runs any required host preparation scripts for the site's profile type
+// and also prepares the host for running scripts for the site's profile type
 func (s Site) FetchRequirements(individualRequirements []string) {
 	log.Println(fmt.Sprintf("Downloading requirements for %s", s.siteName))
 	sitePath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
@@ -197,7 +197,7 @@ func (s Site) FetchRequirements(individualRequirements []string) {
 		r.FetchRequirement()
 	}
 
-	// Checks for and executes any required host preparation for this site
+	// Prepares host automation for post-'prepare_manifests' execution (if any)
 	err = s.prepareHostForAutomation(profileName, parsedRequirements)
 
 	if err != nil {
@@ -332,7 +332,8 @@ func (s Site) DownloadRepo(sitePath string, profileLayerPath string, profileRef 
 	})
 }
 
-// using the downloaded site content, prepares the manifests for it
+// using the downloaded site content, prepares the manifests for it, and also runs
+// host preparation finalization scripts for site automation (if any)
 func (s Site) PrepareManifests() {
 	sitePath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
 	log.Println(fmt.Sprintf("Preparing manifests for %s", s.siteName))
@@ -341,13 +342,14 @@ func (s Site) PrepareManifests() {
 	utils.ValidateRequirements(s.buildPath, s.siteName)
 	binariesPath := fmt.Sprintf("%s/requirements", sitePath)
 
-	// retrieve profile path and clone the repo
-	_, profileLayerPath, profileRef := s.GetProfileFromSite()
+	// retrieve profile name/path and clone the repo
+	profileName, profileLayerPath, profileRef := s.GetProfileFromSite()
 	s.DownloadRepo(sitePath, profileLayerPath, profileRef)
 
 	// create automation sub-directory to store a copy of anything that might be
-	// needed if automation is later requested
+	// needed in the case of potential automation
 	automationPath := fmt.Sprintf("%s/automation", sitePath)
+	automationRepoPath := fmt.Sprintf("%s/baremetal_automation", sitePath)
 	os.Mkdir(automationPath, 0755)
 
 	// copy 00_install-config directory contents (minus kustomization.yaml)
@@ -378,12 +380,21 @@ func (s Site) PrepareManifests() {
 			os.Exit(1)
 		}
 
-		// create a copy of final install-config.yaml in site automation sub-directory
-		// in case automation is later requested
+		// create a copy of final install-config.yaml in any site automation sub-directories
+		// in case automation is later needed
 		err = ioutil.WriteFile(fmt.Sprintf("%s/install-config.yaml", automationPath), out, 0644)
 		if err != nil {
 			log.Fatal(fmt.Sprintf("Error writing final install-config file to automation assets directory: %s", err))
 			os.Exit(1)
+		}
+
+		automationRepoClusterPath := fmt.Sprintf("%s/cluster", automationRepoPath)
+		if _, err = os.Stat(automationRepoClusterPath); err == nil {
+			err = ioutil.WriteFile(fmt.Sprintf("%s/install-config.yaml", automationRepoClusterPath), out, 0644)
+			if err != nil {
+				log.Fatal(fmt.Sprintf("Error writing final install-config file to automation repo directory: %s", err))
+				os.Exit(1)
+			}
 		}
 	} else {
 		log.Fatal("Error, kustomize did not return any content")
@@ -433,8 +444,18 @@ func (s Site) PrepareManifests() {
 	out = utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/01_cluster-mods", sitePath))
 	if len(out) > 0 {
 		// now apply modifications on the manifests
-		manifests.MergeManifests(string(out), sitePath)
+		resultStr := manifests.MergeManifests(string(out), sitePath)
 
+		// Now that we have finalized our manifests, call automation finalization (if any)
+		err = s.finalizeHostForAutomation(profileName)
+
+		if err != nil {
+			log.Fatal(err)
+			os.Exit(1)
+		}
+
+		// Finally, print manifest merge output
+		fmt.Println(resultStr)
 	} else {
 		log.Fatal("Error, kustomize did not return any content")
 		os.Exit(1)
@@ -706,5 +727,35 @@ func (s Site) prepareHostForAutomation(profileName string, requirements map[stri
 	}
 
 	// Tell the automated deployment instance to prepare the host for automation
-	return automatedDeployment.PrepareBastion(requirements)
+	return automatedDeployment.PrepareAutomation(requirements)
+}
+
+func (s Site) finalizeHostForAutomation(profileName string) error {
+	if s.buildPath == "" || s.siteName == "" {
+		return errors.New("Site: finalizeHostForAutomation: build path and/or site name missing")
+	}
+
+	// Get an automated deployment object
+	automatedDeployment, err := s.getAutomatedDeployment()
+
+	if err != nil {
+		// If automation isn't supported for this profile type, it's not a fatal error in
+		// this context, since this function is just trying to finalize the host for potential
+		// automation (and is not called in the context of an explicit automation request)
+		if strings.Contains(err.Error(), "automation not supported") || strings.Contains(err.Error(), "automated deployment not supported") {
+			return nil
+		}
+
+		// Anything else should be treated as an error
+		return err
+	}
+
+	// If automatedDeployment is nil, then automation isn't required/supported
+	// for this particular site, which isn't an error in this context
+	if automatedDeployment == nil {
+		return nil
+	}
+
+	// Tell the automated deployment instance to prepare the host for automation
+	return automatedDeployment.FinalizeAutomation()
 }
