@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -128,6 +129,24 @@ func CopyFile(sourcePath string, destinationPath string) error {
 	}
 
 	err = ioutil.WriteFile(destinationPath, sourceContents, 0)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ReplaceFileText(sourcePath string, oldText string, newText string) error {
+	read, err := ioutil.ReadFile(sourcePath)
+
+	if err != nil {
+		return err
+	}
+
+	newContents := strings.Replace(string(read), oldText, newText, -1)
+
+	err = ioutil.WriteFile(sourcePath, []byte(newContents), 0)
 
 	if err != nil {
 		return err
