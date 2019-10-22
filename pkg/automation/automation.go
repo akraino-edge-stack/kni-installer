@@ -17,7 +17,7 @@ type AutomatedDeploymentParams struct {
 
 type AutomatedDeploymentInterface interface {
 	PrepareAutomation(map[string]string) error // Initial host preparation for automation, before finalizing manifests
-	FinalizeAutomation() error                 // Final host preparation for automation, after finalizing manifests
+	FinalizeAutomationPreparation() error      // Final host preparation for automation, after finalizing manifests
 	DeployMasters() error                      // Deploy cluster masters
 	DeployWorkers() error                      // Deploy cluster workers
 	DestroyCluster() error                     // Destroy the cluster

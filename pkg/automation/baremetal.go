@@ -179,24 +179,83 @@ func (bad baremetalAutomatedDeployment) PrepareAutomation(requirements map[strin
 	return nil
 }
 
-func (bad baremetalAutomatedDeployment) FinalizeAutomation() error {
+func (bad baremetalAutomatedDeployment) FinalizeAutomationPreparation() error {
+	// Copy finalized manifests into the baremetal automation repo directory
+	automationManifestSource := fmt.Sprintf("%s/%s/automation", bad.siteBuildPath, bad.siteName)
 	automationDestination := fmt.Sprintf("%s/%s/baremetal_automation", bad.siteBuildPath, bad.siteName)
+	automationManifestDestination := fmt.Sprintf("%s/cluster", automationDestination)
 
-	// Execute automation's prep_bm_host script
+	// Need to remove all files copied to the site's cluster manifests staging dir that do not
+	// have associated "kind" content within them, as the baremetal automation repo logic will
+	// not tolerate anything without a "kind"
+	err := filepath.Walk(automationManifestSource, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Not interested in directories, so just keep walking
+		if info.IsDir() {
+			return nil
+		}
+
+		filename, _ := filepath.Abs(path)
+		fileBytes, err := ioutil.ReadFile(filename)
+
+		if err != nil {
+			// File can't be read, so skip it
+			return nil
+		}
+
+		// Empty file is useless, so just keep walking
+		if len(fileBytes) == 0 {
+			return nil
+		}
+
+		var fileObject map[string]interface{}
+
+		err = yaml.Unmarshal(fileBytes, &fileObject)
+
+		if err != nil {
+			// File does not have the proper YAML format we are looking for, so skip it
+			return nil
+		}
+
+		// Check unmarshalled file for a "kind" key
+		if _, ok := fileObject["kind"]; ok {
+			// Kind found, so we need to copy this into the baremetal automation
+			// cluster manifests directory
+			err = ioutil.WriteFile(fmt.Sprintf("%s/%s", automationManifestDestination, info.Name()), fileBytes, 0644)
+
+			if err != nil {
+				return err
+			}
+
+			log.Printf("baremetalAutomatedDeployment: FinalizeAutomationPreparation: copied %s to baremetal repo\n", info.Name())
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("baremetalAutomatedDeployment: FinalizeAutomationPreparation: error copying finalized manifests to automation repo: %s", err)
+	}
+
+	// Execute automation's prep_bm_host script now that all manifests have been
+	// copied to the baremetal automation repo's cluster manifests directory
 	cmd := exec.Command(fmt.Sprintf("%s/prep_bm_host.sh", automationDestination))
 	cmd.Dir = automationDestination
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	log.Println("baremetalAutomatedDeployment: FinalizeAutomation: running baremetal automation host preparation script...")
+	log.Println("baremetalAutomatedDeployment: FinalizeAutomationPreparation: running baremetal automation host preparation script...")
 
-	err := cmd.Run()
+	err = cmd.Run()
 
 	if err != nil {
-		return fmt.Errorf("baremetalAutomatedDeployment: FinalizeAutomation: error running baremetal automation host preparation script")
+		return fmt.Errorf("baremetalAutomatedDeployment: FinalizeAutomationPreparation: error running baremetal automation host preparation script: %s", err)
 	}
 
-	log.Println("baremetalAutomatedDeployment: FinalizeAutomation: finished running automation host preparation script")
+	log.Println("baremetalAutomatedDeployment: FinalizeAutomationPreparation: finished running automation host preparation script")
 
 	return nil
 }

@@ -349,11 +349,9 @@ func (s Site) PrepareManifests() {
 	// create automation sub-directory to store a copy of anything that might be
 	// needed in the case of potential automation
 	automationPath := fmt.Sprintf("%s/automation", sitePath)
-	automationRepoPath := fmt.Sprintf("%s/baremetal_automation", sitePath)
 	os.Mkdir(automationPath, 0755)
 
-	// copy 00_install-config directory contents (minus kustomization.yaml)
-	// into automation sub-directory
+	// copy 00_install-config directory contents into automation sub-directory
 	installConfigDirPath := fmt.Sprintf("%s/blueprint/sites/site/00_install-config", sitePath)
 	err := copy.Copy(installConfigDirPath, automationPath)
 
@@ -361,10 +359,6 @@ func (s Site) PrepareManifests() {
 		log.Fatal(fmt.Sprintf("Error copying 00_install-config directory: %s", err))
 		os.Exit(1)
 	}
-
-	// Remove kustomization from automation sub-directory (the copy library used
-	// above does not allow for filtering files when copying directories)
-	os.Remove(fmt.Sprintf("%s/kustomization.yaml", automationPath))
 
 	// generate openshift-install manifests based on phase 00_install-config
 	assetsPath := fmt.Sprintf("%s/generated_assets", sitePath)
@@ -386,15 +380,6 @@ func (s Site) PrepareManifests() {
 		if err != nil {
 			log.Fatal(fmt.Sprintf("Error writing final install-config file to automation assets directory: %s", err))
 			os.Exit(1)
-		}
-
-		automationRepoClusterPath := fmt.Sprintf("%s/cluster", automationRepoPath)
-		if _, err = os.Stat(automationRepoClusterPath); err == nil {
-			err = ioutil.WriteFile(fmt.Sprintf("%s/install-config.yaml", automationRepoClusterPath), out, 0644)
-			if err != nil {
-				log.Fatal(fmt.Sprintf("Error writing final install-config file to automation repo directory: %s", err))
-				os.Exit(1)
-			}
 		}
 	} else {
 		log.Fatal("Error, kustomize did not return any content")
@@ -757,5 +742,5 @@ func (s Site) finalizeHostForAutomation(profileName string) error {
 	}
 
 	// Tell the automated deployment instance to prepare the host for automation
-	return automatedDeployment.FinalizeAutomation()
+	return automatedDeployment.FinalizeAutomationPreparation()
 }
