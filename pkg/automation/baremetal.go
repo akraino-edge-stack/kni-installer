@@ -388,9 +388,8 @@ func (bad baremetalAutomatedDeployment) runConfigGenerationScripts(automationRep
 	// Add scripts to run
 	scripts := []scriptRunInstance{}
 
-	commonArgs := []string{
-		fmt.Sprintf("-m%s", automationManifestsPath),
-	}
+	// Placeholder
+	commonArgs := []string{}
 
 	scripts = append(scripts, scriptRunInstance{
 		description: "dnsmasq provisioning config generation",
