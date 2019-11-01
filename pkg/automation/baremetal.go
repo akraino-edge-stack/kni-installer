@@ -498,10 +498,11 @@ func (bad baremetalAutomatedDeployment) DestroyCluster() error {
 	}
 
 	// Destroy masters via terraform
-	// TODO: Ignoring errors here until we fix the bogus bootstrap VM destruction error
-	//       that falsely reports a problem when there isn't one (the error says that the
-	//       VM cannot be found, but this is expected because the VM was just destroyed!)
-	bad.runTerraform(automationRepoPath, "cluster", terraformDestroy)
+	err = bad.runTerraform(automationRepoPath, "cluster", terraformDestroy)
+
+	if err != nil {
+		return err
+	}
 
 	// Remove bastion (provisioning host) containers
 	scripts := []scriptRunInstance{}
