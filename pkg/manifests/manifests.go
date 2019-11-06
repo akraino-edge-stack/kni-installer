@@ -219,8 +219,9 @@ func MergeManifests(content string, siteBuildPath string) string {
 		var builder strings.Builder
 
 		fmt.Fprintf(&builder, "*** Manifest generation finished. You can run now: %s/requirements/openshift-install create cluster --dir=%s/final_manifests to create the site cluster ***\n", siteBuildPath, siteBuildPath)
-		fmt.Fprintf(&builder, "If using UPI you can generate ignition files with: %s/requirements/openshift-install create ignition-configs --dir=%s/final_manifests", siteBuildPath, siteBuildPath)
-		fmt.Fprintf(&builder, "A profile.env file has been generated inside %s/profile.env, you can source it before starting the openshift-install command", siteBuildPath)
+		fmt.Fprintf(&builder, "If using UPI you can generate ignition files with: %s/requirements/openshift-install create ignition-configs --dir=%s/final_manifests\n", siteBuildPath, siteBuildPath)
+		fmt.Fprintf(&builder, "If you are using baremetal automation you can deploy masters and workers with: ./knictl deploy_masters <site_name>, ./knictl deploy_workers <site_name>. You could destroy the cluster with: ./knictl destroy_cluster <site_name>\n")
+		fmt.Fprintf(&builder, "A profile.env file has been generated inside %s/profile.env, you can source it before starting the openshift-install command\n", siteBuildPath)
 		fmt.Fprintf(&builder, "In order to destroy the cluster you can run:  %s/requirements/openshift-install destroy cluster --dir %s/final_manifests", siteBuildPath, siteBuildPath)
 
 		return builder.String()
