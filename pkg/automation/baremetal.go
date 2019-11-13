@@ -120,6 +120,10 @@ func (bad baremetalAutomatedDeployment) PrepareAutomation(requirements map[strin
 		return fmt.Errorf("baremetalAutomatedDeployment: PrepareAutomation: error writing destination site config file: %s", err)
 	}
 
+	// Create "requirements" directory in the automation repo (needed for later commands)
+	requirementsPath := fmt.Sprintf("%s/requirements", automationDestination)
+	os.Mkdir(requirementsPath, 0755)
+
 	log.Printf("baremetalAutomatedDeployment: PrepareAutomation: finished downloading baremetal automation repo (%s)\n", automationRemoteSource)
 
 	log.Printf("baremetalAutomatedDeployment: PrepareAutomation: injecting version selections into automation repo...\n")
@@ -256,6 +260,30 @@ func (bad baremetalAutomatedDeployment) FinalizeAutomationPreparation() error {
 	}
 
 	log.Println("baremetalAutomatedDeployment: FinalizeAutomationPreparation: finished running automation host preparation script")
+
+	// Copy required versions of oc and openshift-install into the automation repo's "requirements"
+	// directory so that they're used with later automation calls
+	log.Printf("baremetalAutomatedDeployment: FinalizeAutomationPreparation: injecting OpenShift binaries for automation repo...\n")
+
+	requirementsSource := fmt.Sprintf("%s/%s/requirements", bad.siteBuildPath, bad.siteName)
+	requirementsDestination := fmt.Sprintf("%s/%s/baremetal_automation/requirements/.", bad.siteBuildPath, bad.siteName)
+
+	for _, requirement := range []string{"oc", "openshift-install"} {
+		requirementFullPath := fmt.Sprintf("%s/%s", requirementsSource, requirement)
+
+		_, err := os.Stat(requirementFullPath)
+
+		if err != nil {
+			// Requirement was missing, so warn the user (in this case, automation will use
+			// the binary pulled by the call to prep_bm_host.sh above)
+			log.Printf("WARNING: '%s' requirement not specified; automation will use the default for its selected version!", requirement)
+			continue
+		}
+
+		utils.ExecuteCommand("", nil, true, false, "cp", requirementFullPath, requirementsDestination)
+	}
+
+	log.Printf("baremetalAutomatedDeployment: FinalizeAutomationPreparation: finished injecting OpenShift binaries for automation repo\n")
 
 	return nil
 }
