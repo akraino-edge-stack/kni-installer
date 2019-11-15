@@ -244,9 +244,35 @@ func (bad baremetalAutomatedDeployment) FinalizeAutomationPreparation() error {
 		return fmt.Errorf("baremetalAutomatedDeployment: FinalizeAutomationPreparation: error copying finalized manifests to automation repo: %s", err)
 	}
 
+	// Copy required versions of oc and openshift-install into the automation repo's "requirements"
+	// directory so that they're used with later automation calls
+	log.Printf("baremetalAutomatedDeployment: FinalizeAutomationPreparation: injecting OpenShift binaries for automation repo...\n")
+
+	requirementsSource := fmt.Sprintf("%s/%s/requirements", bad.siteBuildPath, bad.siteName)
+	requirementsDestination := fmt.Sprintf("%s/%s/baremetal_automation/requirements/.", bad.siteBuildPath, bad.siteName)
+	prepHostSkipOcpBinariesArg := "--skip-ocp-binaries"
+
+	for _, requirement := range []string{"oc", "openshift-install"} {
+		requirementFullPath := fmt.Sprintf("%s/%s", requirementsSource, requirement)
+
+		_, err := os.Stat(requirementFullPath)
+
+		if err != nil {
+			// Requirement was missing, so warn the user (in this case, automation will use
+			// the OCP binaries pulled by the call to prep_bm_host.sh below)
+			log.Printf("WARNING: '%s' requirement not specified; automation will use the default selected version for OpenShift binaries!", requirement)
+			prepHostSkipOcpBinariesArg = ""
+			break
+		}
+
+		utils.ExecuteCommand("", nil, true, false, "cp", requirementFullPath, requirementsDestination)
+	}
+
+	log.Printf("baremetalAutomatedDeployment: FinalizeAutomationPreparation: finished injecting OpenShift binaries for automation repo\n")
+
 	// Execute automation's prep_bm_host script now that all manifests have been
 	// copied to the baremetal automation repo's cluster manifests directory
-	cmd := exec.Command(fmt.Sprintf("%s/prep_bm_host.sh", automationDestination))
+	cmd := exec.Command(fmt.Sprintf("%s/prep_bm_host.sh", automationDestination), prepHostSkipOcpBinariesArg)
 	cmd.Dir = automationDestination
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -260,30 +286,6 @@ func (bad baremetalAutomatedDeployment) FinalizeAutomationPreparation() error {
 	}
 
 	log.Println("baremetalAutomatedDeployment: FinalizeAutomationPreparation: finished running automation host preparation script")
-
-	// Copy required versions of oc and openshift-install into the automation repo's "requirements"
-	// directory so that they're used with later automation calls
-	log.Printf("baremetalAutomatedDeployment: FinalizeAutomationPreparation: injecting OpenShift binaries for automation repo...\n")
-
-	requirementsSource := fmt.Sprintf("%s/%s/requirements", bad.siteBuildPath, bad.siteName)
-	requirementsDestination := fmt.Sprintf("%s/%s/baremetal_automation/requirements/.", bad.siteBuildPath, bad.siteName)
-
-	for _, requirement := range []string{"oc", "openshift-install"} {
-		requirementFullPath := fmt.Sprintf("%s/%s", requirementsSource, requirement)
-
-		_, err := os.Stat(requirementFullPath)
-
-		if err != nil {
-			// Requirement was missing, so warn the user (in this case, automation will use
-			// the binary pulled by the call to prep_bm_host.sh above)
-			log.Printf("WARNING: '%s' requirement not specified; automation will use the default for its selected version!", requirement)
-			continue
-		}
-
-		utils.ExecuteCommand("", nil, true, false, "cp", requirementFullPath, requirementsDestination)
-	}
-
-	log.Printf("baremetalAutomatedDeployment: FinalizeAutomationPreparation: finished injecting OpenShift binaries for automation repo\n")
 
 	return nil
 }
