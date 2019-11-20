@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7d5ab274_bbbd6e6a",
+        "filename": "ci/kni_deploy_baremetal.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 169
+      },
+      "writtenOn": "2019-11-20T13:01:22Z",
+      "side": 1,
+      "message": "Should there maybe be some sort of call to \"oc get nodes\" or something here to make sure everything is actually ready?",
+      "revId": "49e90ad59f7df6c0841113d8801492c40544a184",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    }
+  ]
+}
