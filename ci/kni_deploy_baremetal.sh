@@ -19,6 +19,10 @@ set -e -u -x -o pipefail
 SITE_NAME="testing.baremetal.edge-sites.net"
 MATCHBOX_ENDPOINT="http://172.22.0.1:8080"
 
+wget https://raw.githubusercontent.com/openshift/installer/master/scripts/maintenance/virsh-cleanup.sh
+chmod a+x ./virsh-cleanup.sh
+sudo -E bash -c "yes Y | ./virsh-cleanup.sh"
+
 rm -rf $HOME/.kni/$SITE_NAME
 pushd $HOME/go/src/gerrit.akraino.org/kni/installer
 ./knictl fetch_requirements file://${WORKSPACE}/$SITE_NAME
