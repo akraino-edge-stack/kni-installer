@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "41028140_86df2343",
+        "filename": "ci/kni_deploy_baremetal.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 171
+      },
+      "writtenOn": "2019-11-21T15:40:16Z",
+      "side": 1,
+      "message": "Is this information redundant to what\u0027s in install-config.yaml?",
+      "revId": "368370f9ea016d84b7f7d165294527069d7138fa",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    }
+  ]
+}
