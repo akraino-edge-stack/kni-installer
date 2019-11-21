@@ -18,6 +18,8 @@ set -e -u -x -o pipefail
 
 SITE_NAME="testing.baremetal.edge-sites.net"
 MATCHBOX_ENDPOINT="http://172.22.0.1:8080"
+UPI_NAME="testing"
+UPI_DOMAIN="baremetal.edge-sites.net"
 
 wget https://raw.githubusercontent.com/openshift/installer/master/scripts/maintenance/virsh-cleanup.sh
 chmod a+x ./virsh-cleanup.sh
@@ -47,6 +49,8 @@ umount /mnt
 # replace the settings_upi.env settings
 sed -i "s#export KUBECONFIG_PATH=.*#export KUBECONFIG_PATH=$HOME/.kni/$SITE_NAME/baremetal_automation/ocp/auth/kubeconfig#g" /root/settings_upi.env
 sed -i "s#export OS_INSTALL_ENDPOINT=.*#export OS_INSTALL_ENDPOINT=$MATCHBOX_ENDPOINT/assets/centos7#g" /root/settings_upi.env
+sed -i "s#export CLUSTER_NAME=.*#export CLUSTER_NAME=$UPI_NAME#g" /root/settings_upi.env
+sed -i "s#export CLUSTER_DOMAIN=.*#export CLUSTER_DOMAIN=$UPI_DOMAIN#g" /root/settings_upi.env
 
 pushd $HOME/go/src/gerrit.akraino.org/kni/installer
 ./knictl deploy_workers $SITE_NAME
