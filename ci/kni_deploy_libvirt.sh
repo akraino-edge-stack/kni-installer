@@ -51,10 +51,15 @@ sudo rm -rf /$HOME/.kni/${SITE_NAME}/final_manifests || true
 ./knictl fetch_requirements file://${BLUEPRINT_PATH}/sites/${SITE_NAME} 2>&1 | tee ${WORKSPACE}/libvirt_requirements.log
 ./knictl prepare_manifests ${SITE_NAME} 2>&1 | tee ${WORKSPACE}/libvirt_manifests.log
 
+# move the binary to /usr/bin, due to create cluster constraints
+sudo cp $HOME/.kni/${SITE_NAME}/requirements/openshift-install /usr/bin/openshift-install
+
 # now run the cluster
+pushd /usr/bin
 source $HOME/.kni/${SITE_NAME}/profile.env
 sudo -E $HOME/.kni/${SITE_NAME}/requirements/openshift-install create cluster --dir=/$HOME/.kni/${SITE_NAME}/final_manifests 2>&1 | tee ${WORKSPACE}/libvirt_deploy.log
 STATUS=$?
+popd
 
 # output tfstate
 echo "metadata.json for removing cluster"
