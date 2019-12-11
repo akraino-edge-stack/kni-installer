@@ -1,4 +1,3 @@
-# UUID                                                             	Group Name
+# UUID                                  	Group Name
 #
-0706f97cf3b2243094a8f24452092769b1065db0                           	GitHub Replication
-ldap:cn=akraino-gerrit-kni-shared,ou=Groups,dc=freestandards,dc=org	ldap/akraino-gerrit-kni-shared
+0706f97cf3b2243094a8f24452092769b1065db0	GitHub Replication
