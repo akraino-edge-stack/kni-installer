@@ -330,8 +330,8 @@ func (bad baremetalAutomatedDeployment) DeployMasters() error {
 		return fmt.Errorf("baremetalAutomatedDeployment: DeployMasters: error copying final_manifests into automation ocp directory: %s", err)
 	}
 
-	// Now run the actual automation scripts
-	err = bad.runConfigGenerationScripts(automationRepoPath, automationManifestsPath)
+	// Now run the actual automation scripts, including ignition-generation
+	err = bad.runConfigGenerationScripts(automationRepoPath, true)
 
 	if err != nil {
 		return err
@@ -414,7 +414,7 @@ func (bad baremetalAutomatedDeployment) runContainers(automationRepoPath string)
 // automationRepoPath: contains path to automation repo directory
 // automationManifestsPath: contains path to directory containing site-config.yaml, install-config.yaml
 //                          and any required credential secret yamls
-func (bad baremetalAutomatedDeployment) runConfigGenerationScripts(automationRepoPath string, automationManifestsPath string) error {
+func (bad baremetalAutomatedDeployment) runConfigGenerationScripts(automationRepoPath string, includeIgnition bool) error {
 	// Add scripts to run
 	scripts := []scriptRunInstance{}
 
@@ -469,11 +469,13 @@ func (bad baremetalAutomatedDeployment) runConfigGenerationScripts(automationRep
 		args:        append([]string{"install"}, commonArgs...),
 	})
 
-	scripts = append(scripts, scriptRunInstance{
-		description: "ignition config generation",
-		scriptFile:  "gen_ignition.sh",
-		args:        append([]string{"create-output"}, commonArgs...),
-	})
+	if includeIgnition {
+		scripts = append(scripts, scriptRunInstance{
+			description: "ignition config generation",
+			scriptFile:  "gen_ignition.sh",
+			args:        append([]string{"create-output"}, commonArgs...),
+		})
+	}
 
 	log.Printf("baremetalAutomatedDeployment: runConfigGenerationScripts: generating configuration...\n")
 
@@ -496,6 +498,30 @@ func (bad baremetalAutomatedDeployment) DeployWorkers() error {
 
 	if err != nil {
 		return fmt.Errorf("baremetalAutomatedDeployment: DeployWorkers: unable to access local automation repo at %s: %s", automationRepoPath, err)
+	}
+
+	// Make sure automation-required manifests are available (these YAMLs should have been copied
+	// to the directory during prepare_manifests)
+	automationManifestsPath := fmt.Sprintf("%s/automation", sitePath)
+
+	_, err = os.Stat(automationManifestsPath)
+
+	if err != nil {
+		return fmt.Errorf("baremetalAutomatedDeployment: DeployWorkers: unable to access automation manifests at %s: %s", automationManifestsPath, err)
+	}
+
+	// Now run the actual automation scripts, minus ignition-generation
+	err = bad.runConfigGenerationScripts(automationRepoPath, false)
+
+	if err != nil {
+		return err
+	}
+
+	// Then start the containers
+	err = bad.runContainers(automationRepoPath)
+
+	if err != nil {
+		return err
 	}
 
 	// Finally run terraform commands to begin workers deployment
