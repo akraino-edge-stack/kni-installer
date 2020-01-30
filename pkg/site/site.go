@@ -642,6 +642,9 @@ func (s Site) getProfileType(profileName string) (string, error) {
 					case "aws":
 						profileType = "aws"
 						break
+					case "gcp":
+						profileType = "gcp"
+						break
 					case "libvirt":
 						profileType = "libvirt"
 						break

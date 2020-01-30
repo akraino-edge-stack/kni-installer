@@ -34,6 +34,23 @@ aws_secret_access_key=xxxx
 
 Please look at [https://docs.openshift.com/container-platform/4.1/installing/installing_aws/installing-aws-account.html](https://docs.openshift.com/container-platform/4.1/installing/installing_aws/installing-aws-account.html)
 
+In the case of Google Cloud Platform deployments, create a $HOME/.gcp directory, with a **service account** file on it. This file needs to be named as **osServiceAccount.json** and have something like: 
+
+{
+  "type": "service_account",
+  "project_id": "openshift-gce-devel",
+  "private_key_id": "xxxxxxxxxxx",
+  "private_key": "xxxxxxxxxxxxxx",
+  "client_email": "xxxxx@xxxx.xxx",
+  "client_id": "xxxxx",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/xxxxxxxx@xxxxxxxxx.xxx"
+}
+
+To get this service account JSON file, you will need to create an account in GCP, and get it in the APIs & Services section. Take into account that a service account is always coupled to a specific project. That project name will have to be the same in this file as well as in the install-config that will be configured as part of our site configuration. 
+
 In the case of libvirt, a helper script can be executed to prepare the installer for acting as a virthost. You can execute **utils/prep_host.sh** script to properly configure your server to install OpenShift on libvirt.
 
 In the case of baremetal, please check [https://docs.openshift.com/container-platform/4.1/installing/installing_bare_metal/installing-bare-metal.html](https://docs.openshift.com/container-platform/4.1/installing/installing_bare_metal/installing-bare-metal.html) in order to prepare your environment for the deployment.
