@@ -1,0 +1,7 @@
+Code-Review+2: Andrew Bays <abays@redhat.com>
+Verified+1: Andrew Bays <abays@redhat.com>
+Submitted-by: Andrew Bays <abays@redhat.com>
+Submitted-at: Wed, 26 Feb 2020 19:54:09 +0000
+Reviewed-on: https://gerrit.akraino.org/r/c/kni/installer/+/2259
+Project: kni/installer
+Branch: refs/heads/master
