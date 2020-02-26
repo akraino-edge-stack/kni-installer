@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f42bc991_1fa213e5",
+        "filename": "ci/kni_deploy_gcp.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 169
+      },
+      "writtenOn": "2020-02-26T19:03:29Z",
+      "side": 1,
+      "message": "s/AWS/GCP",
+      "revId": "014bddf98afed8cbddebc7d9b9ff242f0c7a15b9",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "abe1b2e3_056dea93",
+        "filename": "ci/kni_deploy_gcp.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 169
+      },
+      "writtenOn": "2020-02-26T19:03:29Z",
+      "side": 1,
+      "message": "s/AWS/GCP",
+      "revId": "014bddf98afed8cbddebc7d9b9ff242f0c7a15b9",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    }
+  ]
+}
