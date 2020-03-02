@@ -38,7 +38,6 @@ sudo -E bash -c "yes Y | ./virsh-cleanup.sh"
 
 # add the right credentials to kni
 mkdir $HOME/.kni || true
-cp $WORKSPACE/akraino-secrets/coreos-pull-secret $HOME/.kni/pull-secret.json || true
 cp $HOME/.ssh/id_rsa.pub $HOME/.kni/id_rsa.pub || true
 
 # replace site path with a local ref to the cloned blueprint
