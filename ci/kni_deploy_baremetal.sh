@@ -25,7 +25,7 @@ wget https://raw.githubusercontent.com/openshift/installer/master/scripts/mainte
 chmod a+x ./virsh-cleanup.sh
 sudo -E bash -c "yes Y | ./virsh-cleanup.sh"
 
-rm -rf $HOME/.kni/$SITE_NAME
+rm -rf $HOME/.kni/$SITE_NAME || true
 pushd $HOME/go/src/gerrit.akraino.org/kni/installer
 ./knictl fetch_requirements file://${WORKSPACE}/$SITE_NAME
 ./knictl prepare_manifests $SITE_NAME
