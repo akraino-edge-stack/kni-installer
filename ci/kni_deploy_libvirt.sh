@@ -38,7 +38,6 @@ sudo -E bash -c "yes Y | ./virsh-cleanup.sh"
 
 # add the right credentials to kni
 mkdir $HOME/.kni || true
-cp $WORKSPACE/akraino-secrets/coreos-pull-secret $HOME/.kni/pull-secret.json || true
 cp $HOME/.ssh/id_rsa.pub $HOME/.kni/id_rsa.pub || true
 
 # replace site path with a local ref to the cloned blueprint
@@ -47,7 +46,7 @@ KUSTOMIZATION_FILE=${BLUEPRINT_PATH}/sites/${SITE_NAME}/00_install-config/kustom
 sed -i "s#- git::https://gerrit.akraino.org/r/kni/${GIT_CHECKOUT_DIR}.git/#- file://${BLUEPRINT_PATH}#g" ${KUSTOMIZATION_FILE}
 
 # start the workflow
-sudo rm -rf /$HOME/.kni/${SITE_NAME}/final_manifests || true
+sudo rm -rf /$HOME/.kni/${SITE_NAME} || true
 ./knictl fetch_requirements file://${BLUEPRINT_PATH}/sites/${SITE_NAME} 2>&1 | tee ${WORKSPACE}/libvirt_requirements.log
 ./knictl prepare_manifests ${SITE_NAME} 2>&1 | tee ${WORKSPACE}/libvirt_manifests.log
 

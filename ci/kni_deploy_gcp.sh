@@ -40,7 +40,7 @@ KUSTOMIZATION_FILE=${BLUEPRINT_PATH}/sites/${SITE_NAME}/00_install-config/kustom
 sed -i "s#- git::https://gerrit.akraino.org/r/kni/${GIT_CHECKOUT_DIR}.git/#- file://${BLUEPRINT_PATH}#g" ${KUSTOMIZATION_FILE}
 
 # start the workflow
-sudo rm -rf /$HOME/.kni/${SITE_NAME}/final_manifests || true
+sudo rm -rf /$HOME/.kni/${SITE_NAME} || true
 ./knictl fetch_requirements file://${BLUEPRINT_PATH}/sites/${SITE_NAME} 2>&1 | tee ${WORKSPACE}/gcp_requirements.log
 ./knictl prepare_manifests ${SITE_NAME} 2>&1 | tee ${WORKSPACE}/gcp_manifests.log
 
