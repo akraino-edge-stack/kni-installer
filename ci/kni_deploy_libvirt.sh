@@ -56,7 +56,10 @@ sudo cp $HOME/.kni/${SITE_NAME}/requirements/openshift-install /usr/bin/openshif
 # now run the cluster
 pushd /usr/bin
 source $HOME/.kni/${SITE_NAME}/profile.env
-sudo -E /usr/bin/openshift-install create cluster --dir=/$HOME/.kni/${SITE_NAME}/final_manifests 2>&1 | tee ${WORKSPACE}/libvirt_deploy.log
+sudo -E /usr/bin/openshift-install create cluster --dir=/$HOME/.kni/${SITE_NAME}/final_manifests 2>&1 | tee ${WORKSPACE}/libvirt_deploy.log || true
+
+# additional step of wait for installer to complete
+sudo -E /usr/bin/openshift-install wait-for install-complete --dir=/$HOME/.kni/${SITE_NAME}/final_manifests
 STATUS=$?
 popd
 
