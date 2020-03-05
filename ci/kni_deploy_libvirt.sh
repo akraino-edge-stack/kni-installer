@@ -59,9 +59,9 @@ source $HOME/.kni/${SITE_NAME}/profile.env
 sudo -E /usr/bin/openshift-install create cluster --dir=/$HOME/.kni/${SITE_NAME}/final_manifests 2>&1 | tee ${WORKSPACE}/libvirt_deploy.log || true
 
 # additional step of wait for installer to complete
-sudo -E /usr/bin/openshift-install wait-for install-complete --dir=/$HOME/.kni/${SITE_NAME}/final_manifests
-STATUS=$?
-popd
+for i in 1 2 3; do
+  sudo -E /usr/bin/openshift-install wait-for install-complete --dir=/$HOME/.kni/${SITE_NAME}/final_manifests && break
+done
 
 # output tfstate
 echo "metadata.json for removing cluster"
