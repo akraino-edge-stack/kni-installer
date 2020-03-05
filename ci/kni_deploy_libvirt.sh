@@ -68,6 +68,7 @@ if [ $STATUS -ne 0 ]; then
     echo "Error deploying in libvirt"
     exit 1
 fi
+popd
 
 # output tfstate
 echo "metadata.json for removing cluster"
