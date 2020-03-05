@@ -62,15 +62,16 @@ sudo -E /usr/bin/openshift-install create cluster --dir=/$HOME/.kni/${SITE_NAME}
 for i in 1 2 3; do
   sudo -E /usr/bin/openshift-install wait-for install-complete --dir=/$HOME/.kni/${SITE_NAME}/final_manifests && break
 done
-
-# output tfstate
-echo "metadata.json for removing cluster"
-sudo cat $HOME/.kni/${SITE_NAME}/final_manifests/metadata.json
+STATUS=$?
 
 if [ $STATUS -ne 0 ]; then
     echo "Error deploying in libvirt"
     exit 1
 fi
+
+# output tfstate
+echo "metadata.json for removing cluster"
+sudo cat $HOME/.kni/${SITE_NAME}/final_manifests/metadata.json
 
 echo "Cluster successfully deployed! Start applying workloads"
 ./knictl apply_workloads ${SITE_NAME} 2>&1 | tee ${WORKSPACE}/libvirt_workloads.log
