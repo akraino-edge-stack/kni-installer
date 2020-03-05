@@ -75,7 +75,7 @@ echo "metadata.json for removing cluster"
 sudo cat $HOME/.kni/${SITE_NAME}/final_manifests/metadata.json
 
 echo "Cluster successfully deployed! Start applying workloads"
-./knictl apply_workloads ${SITE_NAME} 2>&1 | tee ${WORKSPACE}/libvirt_workloads.log
+sudo -E ./knictl apply_workloads ${SITE_NAME} 2>&1 | tee ${WORKSPACE}/libvirt_workloads.log
 STATUS=$?
 
 if [ $STATUS -ne 0 ]; then
