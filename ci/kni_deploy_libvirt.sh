@@ -65,7 +65,7 @@ done
 
 # output tfstate
 echo "metadata.json for removing cluster"
-cat $HOME/.kni/${SITE_NAME}/final_manifests/metadata.json
+sudo cat $HOME/.kni/${SITE_NAME}/final_manifests/metadata.json
 
 if [ $STATUS -ne 0 ]; then
     echo "Error deploying in libvirt"
