@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"gerrit.akraino.org/kni/installer/pkg/utils"
@@ -161,19 +162,29 @@ func (bad baremetalAutomatedDeployment) PrepareAutomation(requirements map[strin
 	if err != nil {
 		return fmt.Errorf("baremetalAutomatedDeployment: PrepareAutomation: error unmarshalling site-config.yaml: %s", err)
 	}
+	rhcosVersionsPath := fmt.Sprintf("%s/common.sh", automationDestination)
 
 	if config, ok := siteConfig["config"].(map[interface{}]interface{}); ok {
 		if releaseImageOverride, ok := config["releaseImageOverride"].(string); ok {
 			parts := strings.Split(releaseImageOverride, ":")
 
 			if len(parts) == 2 {
-				rhcosVersionsPath := fmt.Sprintf("%s/common.sh", automationDestination)
-
 				err = utils.ReplaceFileText(rhcosVersionsPath, "OPENSHIFT_RHCOS_MAJOR_REL=\"\"", fmt.Sprintf("OPENSHIFT_RHCOS_MAJOR_REL=\"%s\"", parts[1]))
 
 				if err != nil {
 					return fmt.Errorf("baremetalAutomatedDeployment: PrepareAutomation: error injecting RHCOS image version: %s", err)
 				}
+			}
+		}
+	}
+
+	if config, ok := siteConfig["config"].(map[interface{}]interface{}); ok {
+		if virtualizedInstall, ok := config["virtualizedInstall"].(bool); ok {
+
+			err = utils.ReplaceFileText(rhcosVersionsPath, "VIRTUALIZED_INSTALL=\"\"", fmt.Sprintf("VIRTUALIZED_INSTALL=\"%s\"", strconv.FormatBool(virtualizedInstall)))
+
+			if err != nil {
+				return fmt.Errorf("baremetalAutomatedDeployment: PrepareAutomation: error injecting virtualized install setting: %s", err)
 			}
 		}
 	}
