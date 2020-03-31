@@ -74,7 +74,9 @@ if [ $STATUS -ne 0 ]; then
     exit 1
 fi
 
-# now destroy the cluster
-pushd $HOME/go/src/gerrit.akraino.org/kni/installer
-./knictl destroy_cluster $SITE_NAME
-popd
+if [ -z "${PRESERVE_CLUSTER}" ]; then
+  # now destroy the cluster
+  pushd $HOME/go/src/gerrit.akraino.org/kni/installer
+  ./knictl destroy_cluster $SITE_NAME
+  popd
+fi
