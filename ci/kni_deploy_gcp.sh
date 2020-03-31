@@ -67,9 +67,11 @@ if [ $STATUS -ne 0 ]; then
     exit 1
 fi
 
-echo "Workloads successfully applied! Starting cleanup"
-$HOME/.kni/${SITE_NAME}/requirements/openshift-install destroy cluster --dir=/$HOME/.kni/${SITE_NAME}/final_manifests 2>&1 | tee ${WORKSPACE}/gcp_destroy.log
-STATUS=$?
+if [ -z "{PRESERVE_CLUSTER}" ]; then
+  echo "Workloads successfully applied! Starting cleanup"
+  $HOME/.kni/${SITE_NAME}/requirements/openshift-install destroy cluster --dir=/$HOME/.kni/${SITE_NAME}/final_manifests 2>&1 | tee ${WORKSPACE}/gcp_destroy.log
+  STATUS=$?
+fi
 
 popd
 
