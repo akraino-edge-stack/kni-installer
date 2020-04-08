@@ -16,10 +16,12 @@
 
 set -e -u -x -o pipefail
 
-SITE_NAME="testing.baremetal.edge-sites.net"
-MATCHBOX_ENDPOINT="http://172.22.0.1:8080"
-UPI_NAME="testing"
-UPI_DOMAIN="baremetal.edge-sites.net"
+SITE_NAME="${SITE_NAME:-testing.baremetal.edge-sites.net}"
+MATCHBOX_ENDPOINT="${MATCHBOX_ENDPOINT:-http://172.22.0.1:8080}"
+UPI_NAME="${UPI_NAME:-testing}"
+UPI_DOMAIN="${UPI_DOMAIN:-baremetal.edge-sites.net}"
+LANG="en_US.UTF-8"
+PRESERVE_CLUSTER="${PRESERVE_CLUSTER:-true}"
 
 wget https://raw.githubusercontent.com/openshift/installer/master/scripts/maintenance/virsh-cleanup.sh
 chmod a+x ./virsh-cleanup.sh
