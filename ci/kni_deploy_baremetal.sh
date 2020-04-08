@@ -29,7 +29,7 @@ sudo -E bash -c "yes Y | ./virsh-cleanup.sh"
 
 rm -rf $HOME/.kni/$SITE_NAME || true
 pushd $HOME/go/src/gerrit.akraino.org/kni/installer
-./knictl fetch_requirements file://${WORKSPACE}/$SITE_NAME
+./knictl fetch_requirements file://${WORKSPACE}/kni-blueprint-pae/sites/$SITE_NAME
 ./knictl prepare_manifests $SITE_NAME
 popd
 
