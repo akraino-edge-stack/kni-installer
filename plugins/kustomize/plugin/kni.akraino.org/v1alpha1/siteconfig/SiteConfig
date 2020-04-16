@@ -17,7 +17,9 @@ shift
 
 PULL_SECRET=$(cat ${HOME}/.kni/pull-secret.json)
 SSH_PUB_KEY=$(cat ${HOME}/.kni/id_rsa.pub)
+DOCKERCONFIGJSON=$(cat ${HOME}/.kni/dockerconfig.json)
 
 cat - | sed \
     -e "s|PULL_SECRET|\'${PULL_SECRET}\'|" \
-    -e "s|SSH_PUB_KEY|${SSH_PUB_KEY}|"
+    -e "s|SSH_PUB_KEY|${SSH_PUB_KEY}|" \
+    -e "s|DOCKERCONFIGJSON|${DOCKERCONFIGJSON}|"
