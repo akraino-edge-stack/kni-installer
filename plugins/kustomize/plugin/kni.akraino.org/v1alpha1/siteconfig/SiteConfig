@@ -9,7 +9,7 @@
 # The same mechanism could be used in the future to template in more site
 # configuration parameters for which a purist "kustomization" is too cumbersome.
 
-# set -x
+#set -x
 set -e
 
 # Skip the config file name argument.
@@ -17,8 +17,14 @@ shift
 
 PULL_SECRET=$(cat ${HOME}/.kni/pull-secret.json)
 SSH_PUB_KEY=$(cat ${HOME}/.kni/id_rsa.pub)
-DOCKERCONFIGJSON=$(cat ${HOME}/.kni/dockerconfig.json)
-KUBECONFIGHUB=$(cat ${HOME}/.kni/kubeconfighub.json)
+
+if [ -f $HOME/.kni/dockerconfig.json]; then
+    DOCKERCONFIGJSON=$(cat ${HOME}/.kni/dockerconfig.json)
+fi
+
+if [ -f $HOME/.kni/kubeconfighub.json]; then
+    KUBECONFIGHUB=$(cat ${HOME}/.kni/kubeconfighub.json)
+fi
 
 cat - | sed \
     -e "s|PULL_SECRET|\'${PULL_SECRET}\'|" \
