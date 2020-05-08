@@ -18,11 +18,11 @@ shift
 PULL_SECRET=$(cat ${HOME}/.kni/pull-secret.json)
 SSH_PUB_KEY=$(cat ${HOME}/.kni/id_rsa.pub)
 
-if [ -f `$HOME/.kni/dockerconfig.json` ]; then
+if [[ -f "$HOME/.kni/dockerconfig.json" ]]; then
     DOCKERCONFIGJSON=$(cat ${HOME}/.kni/dockerconfig.json)
 fi
 
-if [ -f `$HOME/.kni/kubeconfighub.json` ]; then
+if [[ -f "$HOME/.kni/kubeconfighub.json" ]]; then
     KUBECONFIGHUB=$(cat ${HOME}/.kni/kubeconfighub.json)
 fi
 
