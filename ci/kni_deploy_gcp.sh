@@ -19,6 +19,7 @@ set -e -u -x -o pipefail
 export PATH=$PATH:/usr/local/go/bin:/usr/local/bin
 KNI_PATH='src/gerrit.akraino.org/kni/'
 SITE_NAME='edge-sites-testing.gcp.devcluster.openshift.com'
+PRESERVE_CLUSTER="${PRESERVE_CLUSTER:-}"
 
 echo '---> Starting kni installer generation'
 export GOPATH=${WORKSPACE}/
