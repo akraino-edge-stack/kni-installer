@@ -38,22 +38,6 @@ pushd $HOME/go/src/gerrit.akraino.org/kni/installer
 $HOME/.kni/$SITE_NAME/requirements/openshift-install wait-for bootstrap-complete  --dir $HOME/.kni/$SITE_NAME/baremetal_automation/ocp/
 popd
 
-pushd $HOME/.kni/$SITE_NAME/baremetal_automation/kickstart
-bash add_kickstart_for_centos.sh
-cp centos-worker-kickstart.cfg $HOME/.kni/$SITE_NAME/baremetal_automation/matchbox-data/var/lib/matchbox/assets
-popd
-
-mount -o loop /opt/images/CentOS-7-x86_64-DVD-1810.iso /mnt/
-cp -ar /mnt/. $HOME/.kni/$SITE_NAME/baremetal_automation/matchbox-data/var/lib/matchbox/assets/centos7/
-chmod -R 755 $HOME/.kni/$SITE_NAME/baremetal_automation/matchbox-data/var/lib/matchbox/assets/centos7/
-umount /mnt
-
-# replace the settings_upi.env settings
-sed -i "s#export KUBECONFIG_PATH=.*#export KUBECONFIG_PATH=$HOME/.kni/$SITE_NAME/baremetal_automation/ocp/auth/kubeconfig#g" /root/settings_upi.env
-sed -i "s#export OS_INSTALL_ENDPOINT=.*#export OS_INSTALL_ENDPOINT=$MATCHBOX_ENDPOINT/assets/centos7#g" /root/settings_upi.env
-sed -i "s#export CLUSTER_NAME=.*#export CLUSTER_NAME=$UPI_NAME#g" /root/settings_upi.env
-sed -i "s#export CLUSTER_DOMAIN=.*#export CLUSTER_DOMAIN=$UPI_DOMAIN#g" /root/settings_upi.env
-
 pushd $HOME/go/src/gerrit.akraino.org/kni/installer
 ./knictl deploy_workers $SITE_NAME
 
