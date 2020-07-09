@@ -35,7 +35,15 @@ popd
 
 pushd $HOME/go/src/gerrit.akraino.org/kni/installer
 ./knictl deploy_masters $SITE_NAME
-$HOME/.kni/$SITE_NAME/requirements/openshift-install wait-for bootstrap-complete  --dir $HOME/.kni/$SITE_NAME/baremetal_automation/ocp/
+
+# just sleep for some time, for masters to be up
+sleep 20m
+
+NUM_READY=0
+while [[ "$NUM_READY" -le 1 ]]; do
+    NUM_READY=$(KUBECONFIG=$HOME/.kni/$SITE_NAME/baremetal_automation/ocp/auth/kubeconfig $HOME/.kni/$SITE_NAME/requirements/oc get nodes | grep " Ready " | wc -l )
+    sleep 1m
+done
 popd
 
 pushd $HOME/go/src/gerrit.akraino.org/kni/installer
