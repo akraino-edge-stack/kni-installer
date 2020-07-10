@@ -50,6 +50,9 @@ popd
 pushd $HOME/go/src/gerrit.akraino.org/kni/installer
 ./knictl deploy_workers $SITE_NAME
 
+# destroy bootstrap node
+virsh destroy ${UPI_NAME}-bootstrap
+
 # just sleep for some time, and workers should be up
 sleep 20m
 popd
