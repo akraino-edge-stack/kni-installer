@@ -41,7 +41,8 @@ sleep 20m
 
 NUM_READY=0
 while [[ "$NUM_READY" -lt 1 ]]; do
-    NUM_READY=$(KUBECONFIG=$HOME/.kni/$SITE_NAME/baremetal_automation/ocp/auth/kubeconfig $HOME/.kni/$SITE_NAME/requirements/oc get nodes | grep " Ready " | wc -l )
+    READY_NODES=$(KUBECONFIG=$HOME/.kni/$SITE_NAME/baremetal_automation/ocp/auth/kubeconfig $HOME/.kni/$SITE_NAME/requirements/oc get nodes)
+    NUM_READY=$(echo $READY_NODES | grep " Ready " | wc -l )
     sleep 1m
 done
 popd
