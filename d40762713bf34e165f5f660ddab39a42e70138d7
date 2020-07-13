@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6bacfa65_e012e280",
+        "filename": "pkg/manifests/manifests.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 140
+      },
+      "writtenOn": "2020-07-13T07:21:42Z",
+      "side": 1,
+      "message": "typo: initiated",
+      "range": {
+        "startLine": 223,
+        "startChar": 238,
+        "endLine": 223,
+        "endChar": 248
+      },
+      "revId": "d40762713bf34e165f5f660ddab39a42e70138d7",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    }
+  ]
+}
