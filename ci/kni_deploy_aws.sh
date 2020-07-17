@@ -56,6 +56,7 @@ cat $HOME/.kni/${SITE_NAME}/final_manifests/metadata.json
 
 if [ $STATUS -ne 0 ]; then
     echo "Error deploying in AWS"
+    $HOME/.kni/${SITE_NAME}/requirements/openshift-install destroy cluster --dir=/$HOME/.kni/${SITE_NAME}/final_manifests 2>&1 | tee ${WORKSPACE}/aws_destroy.log
     exit 1
 fi
 
@@ -65,6 +66,7 @@ STATUS=$?
 
 if [ $STATUS -ne 0 ]; then
     echo "Error applying workloads to AWS"
+    $HOME/.kni/${SITE_NAME}/requirements/openshift-install destroy cluster --dir=/$HOME/.kni/${SITE_NAME}/final_manifests 2>&1 | tee ${WORKSPACE}/aws_destroy.log
     exit 1
 fi
 
