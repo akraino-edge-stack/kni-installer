@@ -47,7 +47,7 @@ sudo rm -rf /$HOME/.kni/${SITE_NAME} || true
 
 # now run the cluster
 source $HOME/.kni/${SITE_NAME}/profile.env
-$HOME/.kni/${SITE_NAME}/requirements/openshift-install create cluster --dir=/$HOME/.kni/${SITE_NAME}/final_manifests 2>&1 | tee ${WORKSPACE}/gcp_deploy.log
+$HOME/.kni/${SITE_NAME}/requirements/openshift-install create cluster --dir=/$HOME/.kni/${SITE_NAME}/final_manifests 2>&1 | tee ${WORKSPACE}/gcp_deploy.log || true
 STATUS=$?
 
 # output tfstate
