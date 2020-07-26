@@ -18,9 +18,15 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"gerrit.akraino.org/kni/installer/pkg/site"
 	"github.com/spf13/cobra"
+)
+
+var (
+	RetryCount int
+	Delay      int
 )
 
 // applyWorkloadsCmd represents the apply_workloads command
@@ -53,9 +59,25 @@ var applyWorkloadsCmd = &cobra.Command{
 			kubeconfig = ""
 		}
 
+		retryCount, _ := cmd.Flags().GetString("retry_count")
+		if len(retryCount) == 0 {
+			//set to default value
+			RetryCount = 5
+		} else {
+			RetryCount, _ = strconv.Atoi(retryCount)
+		}
+
+		delay, _ := cmd.Flags().GetString("delay")
+		if len(delay) == 0 {
+			//set to default value
+			Delay = 30
+		} else {
+			Delay, _ = strconv.Atoi(delay)
+		}
+
 		// define a site object and proceed with applying workloads
 		s := site.NewWithName(siteName, buildPath)
-		s.ApplyWorkloads(kubeconfig)
+		s.ApplyWorkloads(kubeconfig, RetryCount, Delay)
 	},
 }
 
@@ -64,5 +86,7 @@ func init() {
 
 	applyWorkloadsCmd.Flags().StringP("build_path", "", "", "Directory to use as build path. If that not exists, the installer will generate a default directory")
 	applyWorkloadsCmd.Flags().StringP("kubeconfig", "", "", "Path to kubeconfig file. By default it will be the one generated with prepare_manifests. If set to 'local', no kubeconfig will be used and it will assume running on local cluster")
+	applyWorkloadsCmd.Flags().StringP("retry_count", "", "", "Number of retries")
+	applyWorkloadsCmd.Flags().StringP("delay", "", "", "Delay between each retry")
 
 }

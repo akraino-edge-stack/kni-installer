@@ -54,7 +54,7 @@ func ApplyKustomize(kustomizeBinary string, kustomizePath string) []byte {
 }
 
 // utility to apply OC for a given output
-func ApplyOc(ocBinary string, kubectlContent []byte, kubeconfigPath string) {
+func ApplyOc(ocBinary string, kubectlContent []byte, kubeconfigPath string, retryCount int, delay int) {
 	// write content to be applied to temporary file
 	tmpFile, err := ioutil.TempFile(os.TempDir(), "kubectl-")
 	if err != nil {
@@ -73,7 +73,7 @@ func ApplyOc(ocBinary string, kubectlContent []byte, kubeconfigPath string) {
 	if len(kubeconfigPath) > 0 {
 		envVars = []string{fmt.Sprintf("KUBECONFIG=%s", kubeconfigPath)}
 	}
-	for i := 1; i <= 5; i++ {
+	for i := 1; i <= retryCount; i++ {
 		_, err := ExecuteCommand("", envVars, false, true, ocBinary, "apply", "-f", tmpFile.Name())
 
 		if err == nil {
@@ -82,7 +82,7 @@ func ApplyOc(ocBinary string, kubectlContent []byte, kubeconfigPath string) {
 		} else {
 			log.Println(string(err))
 			// sleep and retry
-			time.Sleep(30 * time.Second)
+			time.Sleep(time.Duration(delay) * time.Second)
 		}
 	}
 }

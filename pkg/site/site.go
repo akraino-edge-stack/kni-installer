@@ -449,7 +449,7 @@ func (s Site) PrepareManifests() {
 }
 
 // using the site contents, applies the workloads on it
-func (s Site) ApplyWorkloads(kubeconfigFile string) {
+func (s Site) ApplyWorkloads(kubeconfigFile string, retryCount int, delay int) {
 	siteBuildPath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
 
 	// if we have kubeconfig, validate that exists
@@ -469,7 +469,7 @@ func (s Site) ApplyWorkloads(kubeconfigFile string) {
 	out := utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
 	if string(out) != "" {
 		// now we can apply it
-		utils.ApplyOc(fmt.Sprintf("%s/oc", binariesPath), out, kubeconfigFile)
+		utils.ApplyOc(fmt.Sprintf("%s/oc", binariesPath), out, kubeconfigFile, retryCount, delay)
 	} else {
 		log.Println(fmt.Sprintf("No manifests found for %s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
 	}
@@ -477,7 +477,7 @@ func (s Site) ApplyWorkloads(kubeconfigFile string) {
 	out = utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/03_services", siteBuildPath))
 	if string(out) != "" {
 		// now we can apply it
-		utils.ApplyOc(fmt.Sprintf("%s/oc", binariesPath), out, kubeconfigFile)
+		utils.ApplyOc(fmt.Sprintf("%s/oc", binariesPath), out, kubeconfigFile, retryCount, delay)
 	} else {
 		log.Println(fmt.Sprintf("No manifests found for %s/blueprint/sites/site/03_services", siteBuildPath))
 	}
