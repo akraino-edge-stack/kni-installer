@@ -41,11 +41,13 @@ pushd $HOME/go/src/gerrit.akraino.org/kni/installer
 sleep 20m
 
 NUM_READY=0
+set +e
 while [[ "$NUM_READY" -lt 1 ]]; do
     READY_NODES=$(KUBECONFIG=$HOME/.kni/$SITE_NAME/baremetal_automation/ocp/auth/kubeconfig $HOME/.kni/$SITE_NAME/requirements/oc get nodes || true)
     NUM_READY=$(echo $READY_NODES | grep " Ready " | wc -l )
     sleep 1m
 done
+set -e
 popd
 
 pushd $HOME/go/src/gerrit.akraino.org/kni/installer
