@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"gerrit.akraino.org/kni/installer/pkg/utils"
@@ -19,6 +20,7 @@ import (
 
 var (
 	automationRemoteSource string
+	reqs                   string
 )
 
 func init() {
@@ -137,10 +139,10 @@ func (bad baremetalAutomatedDeployment) PrepareAutomation(requirements map[strin
 		switch requirementName {
 		case "oc":
 			err = utils.ReplaceFileText(binaryVersionsPath, "OCP_CLIENT_BINARY_URL=\"\"", fmt.Sprintf("OCP_CLIENT_BINARY_URL=\"%s\"", requirementSource))
-
 			if err != nil {
 				return fmt.Errorf("baremetalAutomatedDeployment: PrepareAutomation: error injecting oc binary version: %s", err)
 			}
+			reqs = requirementSource
 		case "openshift-install":
 			err = utils.ReplaceFileText(binaryVersionsPath, "OCP_INSTALL_BINARY_URL=\"\"", fmt.Sprintf("OCP_INSTALL_BINARY_URL=\"%s\"", requirementSource))
 
@@ -164,7 +166,9 @@ func (bad baremetalAutomatedDeployment) PrepareAutomation(requirements map[strin
 	rhcosVersionsPath := fmt.Sprintf("%s/common.sh", automationDestination)
 
 	if config, ok := siteConfig["config"].(map[interface{}]interface{}); ok {
-		if releaseImageOverride, ok := config["releaseImageOverride"].(string); ok {
+
+		releaseImageOverride, ok := config["releaseImageOverride"].(string)
+		if ok {
 			parts := strings.Split(releaseImageOverride, ":")
 
 			if len(parts) == 2 {
@@ -173,6 +177,15 @@ func (bad baremetalAutomatedDeployment) PrepareAutomation(requirements map[strin
 				if err != nil {
 					return fmt.Errorf("baremetalAutomatedDeployment: PrepareAutomation: error injecting RHCOS image version: %s", err)
 				}
+			}
+		} else {
+			re := regexp.MustCompile(`\d+\.?\d+\.\d*`)
+			submatch := re.FindStringSubmatch(reqs)
+			versions := strings.Split(submatch[0], ".")
+			err = utils.ReplaceFileText(rhcosVersionsPath, "OPENSHIFT_RHCOS_MAJOR_REL=\"\"", fmt.Sprintf("OPENSHIFT_RHCOS_MAJOR_REL=\"%s\"", versions[0]+"."+versions[1]))
+
+			if err != nil {
+				return fmt.Errorf("baremetalAutomatedDeployment: PrepareAutomation: error injecting RHCOS image version: %s", err)
 			}
 		}
 
