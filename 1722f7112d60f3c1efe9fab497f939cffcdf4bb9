@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "21f6eda8_5dd8cc57",
+        "filename": "pkg/automation/baremetal.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 154
+      },
+      "writtenOn": "2020-08-06T08:32:43Z",
+      "side": 1,
+      "message": "nit: blank line",
+      "range": {
+        "startLine": 201,
+        "startChar": 0,
+        "endLine": 201,
+        "endChar": 0
+      },
+      "revId": "1722f7112d60f3c1efe9fab497f939cffcdf4bb9",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fb03c58_628c082b",
+        "filename": "pkg/automation/baremetal.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 702,
+      "author": {
+        "id": 154
+      },
+      "writtenOn": "2020-08-06T08:32:43Z",
+      "side": 1,
+      "message": "nit: blank line",
+      "revId": "1722f7112d60f3c1efe9fab497f939cffcdf4bb9",
+      "serverId": "4cada01b-0314-4fe0-84a1-f9ddc89863f9",
+      "unresolved": true
+    }
+  ]
+}
