@@ -26,8 +26,18 @@ if [[ -f "$HOME/.kni/kubeconfighub.json" ]]; then
     KUBECONFIGHUB=$(cat ${HOME}/.kni/kubeconfighub.json)
 fi
 
+if [[ -f "$HOME/.kni/githubsecret.json" ]]; then
+    GITHUBUSER=$(cat ${HOME}/.kni/githubsecret.json | grep user | awk '{print $2}')
+    GITHUBTOKEN=$(cat ${HOME}/.kni/githubsecret.json | grep token | awk '{print $2}')
+fi
+
+~/.kni/githubsecret.json
+
 cat - | sed \
     -e "s|PULL_SECRET|\'${PULL_SECRET}\'|" \
     -e "s|SSH_PUB_KEY|${SSH_PUB_KEY}|" \
     -e "s|DOCKERCONFIGJSON|${DOCKERCONFIGJSON}|" \
-    -e "s|KUBECONFIGHUB|${KUBECONFIGHUB}|"
+    -e "s|KUBECONFIGHUB|${KUBECONFIGHUB}|" \
+    -e "s|GITHUBUSER|\'${GITHUBUSER}\'|" \
+    -e "s|GITHUBTOKEN|\'${GITHUBTOKEN}\'|"
+
