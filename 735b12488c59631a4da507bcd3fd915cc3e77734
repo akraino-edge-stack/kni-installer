@@ -1,0 +1,7 @@
+Code-Review+2: Yolanda Robla Mota <yroblamo@redhat.com>
+Verified+1: Akraino Jobbuilder <collab-it+akraino-jobbuilder@linuxfoundation.org>
+Submitted-by: Ricardo Noriega <rnoriega@redhat.com>
+Submitted-at: Tue, 22 Sep 2020 08:33:13 +0000
+Reviewed-on: https://gerrit.akraino.org/r/c/kni/installer/+/3713
+Project: kni/installer
+Branch: refs/heads/master
