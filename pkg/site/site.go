@@ -299,7 +299,7 @@ func (s Site) DownloadRepo(sitePath string, profileLayerPath string, profileRef 
 
 	// and now copy site inside the sites folder, replacing the absolute references to relative
 	var envVars []string
-	utils.ExecuteCommand("", envVars, true, false, "cp", "-R", fmt.Sprintf("%s/site", sitePath), fmt.Sprintf("%s/blueprint/sites/site", sitePath))
+	utils.ExecuteCommand("", envVars, true, false, "cp", "-R", fmt.Sprintf("%s/blueprint/sites/%s", sitePath, s.siteName), fmt.Sprintf("%s/blueprint/sites/site", sitePath))
 
 	filepath.Walk(fmt.Sprintf("%s/blueprint/sites/site", sitePath), func(path string, info os.FileInfo, err error) error {
 		if err == nil {
