@@ -89,8 +89,7 @@ func MergeManifests(content string, siteBuildPath string) string {
 
 		err := yaml.Unmarshal([]byte(manifest), &manifestObj)
 		if err != nil {
-			log.Println(fmt.Sprintf("Error parsing manifest: %s", err))
-			os.Exit(1)
+			log.Fatalf("Error parsing manifest: %s\n", err)
 		}
 		// add to the list of manifests with the generated key
 		GVKN := GetGKVN(manifestObj)
@@ -113,14 +112,12 @@ func MergeManifests(content string, siteBuildPath string) string {
 				// read file content and unmarshal it
 				manifestContent, err := ioutil.ReadFile(path)
 				if err != nil {
-					log.Println(fmt.Sprintf("Error reading manifest content: %s", err))
-					os.Exit(1)
+					log.Fatalf("Error reading manifest content: %s\n", err)
 				}
 				var manifestContentObj map[interface{}]interface{}
 				err = yaml.Unmarshal(manifestContent, &manifestContentObj)
 				if err != nil {
-					log.Println(fmt.Sprintf("Error parsing manifest: %s", err))
-					os.Exit(1)
+					log.Fatalf("Error parsing manifest: %s\n", err)
 				}
 
 				GVKN := GetGKVN(manifestContentObj)
@@ -149,24 +146,21 @@ func MergeManifests(content string, siteBuildPath string) string {
 
 							kustomizedString, err := yaml.Marshal(kustomizedContentObj)
 							if err != nil {
-								log.Fatal(fmt.Sprintf("Error marshaling kustomized content: %s", err))
-								os.Exit(1)
+								log.Fatalf("Error marshaling kustomized content: %s\n", err)
 							}
 
 							if len(walkedManifests) == 1 {
 								// just rewrite with the original name
 								err = ioutil.WriteFile(path, kustomizedString, 0644)
 								if err != nil {
-									log.Fatal(fmt.Sprintf("Error writing new manifest content: %s", err))
-									os.Exit(1)
+									log.Fatalf("Error writing new manifest content: %s\n", err)
 								}
 							} else {
 								// rewrite with a prefix
 								newPath := fmt.Sprintf("%02d_%s", counter, path)
 								err = ioutil.WriteFile(newPath, kustomizedString, 0644)
 								if err != nil {
-									log.Fatal(fmt.Sprintf("Error writing new manifest content: %s", err))
-									os.Exit(1)
+									log.Fatalf("Error writing new manifest content: %s", err)
 								}
 								counter = counter + 1
 							}
@@ -176,8 +170,7 @@ func MergeManifests(content string, siteBuildPath string) string {
 
 			}
 		} else {
-			log.Println(fmt.Sprintf("Error walking on manifests directory: %s", err))
-			os.Exit(1)
+			log.Fatalf("Error walking on manifests directory: %s\n", err)
 		}
 		return nil
 	})
@@ -189,20 +182,18 @@ func MergeManifests(content string, siteBuildPath string) string {
 		if !ok {
 			// the manifest is not there, add it
 			manifestName := fmt.Sprintf("99_%04d_%s.yaml", counter, NameFromGVKN(k))
-			log.Println(fmt.Sprintf("Blueprint added manifests %s, writing to %s", k, manifestName))
+			log.Printf("Blueprint added manifests %s, writing to %s\n", k, manifestName)
 
 			newPath := fmt.Sprintf("%s/blueprint/base/00_cluster/manifests/%s", siteBuildPath, manifestName)
 
 			// marshal the file to write
 			kustomizedString, err := yaml.Marshal(v)
 			if err != nil {
-				log.Fatal(fmt.Sprintf("Error marshing manifest: %s", err))
-				os.Exit(1)
+				log.Fatalf("Error marshing manifest: %s\n", err)
 			}
 			err = ioutil.WriteFile(newPath, kustomizedString, 0644)
 			if err != nil {
-				log.Fatal(fmt.Sprintf("Error writing manifest: %s", err))
-				os.Exit(1)
+				log.Fatalf("Error writing manifest: %s\n", err)
 			}
 			counter = counter + 1
 
@@ -213,8 +204,7 @@ func MergeManifests(content string, siteBuildPath string) string {
 	os.RemoveAll(fmt.Sprintf("%s/final_manifests", siteBuildPath))
 	err := os.Rename(fmt.Sprintf("%s/blueprint/base/00_cluster", siteBuildPath), fmt.Sprintf("%s/final_manifests", siteBuildPath))
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Error moving to final manifests folder: %s", err))
-		os.Exit(1)
+		log.Fatalf("Error moving to final manifests folder: %s\n", err)
 	} else {
 		var builder strings.Builder
 

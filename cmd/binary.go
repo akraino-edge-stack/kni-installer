@@ -42,11 +42,10 @@ func BuildBinary(binPath string, installerRepo string, installerTag string) {
 	err := client.Get()
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Error downloading installer repo: %s", err))
-		os.Exit(1)
+		log.Fatalf("Error downloading installer repo: %s\n", err)
 	}
 
-	log.Println(fmt.Sprintf("Building installer on %s", installerPath))
+	log.Printf("Building installer on %s\n", installerPath)
 	cmd := exec.Command("hack/build.sh")
 	cmd.Dir = installerPath
 	cmd.Env = os.Environ()
@@ -60,8 +59,7 @@ func BuildBinary(binPath string, installerRepo string, installerTag string) {
 
 	err = cmd.Run()
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Error building binary: %s - %s", err, stdBuffer.String()))
-		os.Exit(1)
+		log.Fatalf("Error building binary: %s - %s\n", err, stdBuffer.String())
 	}
 	log.Println(stdBuffer.String())
 
@@ -69,10 +67,9 @@ func BuildBinary(binPath string, installerRepo string, installerTag string) {
 	cmd = exec.Command("cp", fmt.Sprintf("%s/bin/openshift-install", installerPath), binPath)
 	err = cmd.Run()
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Error copying installer to buid path: %s", err))
-		os.Exit(1)
+		log.Fatalf("Error copying installer to buid path: %s\n", err)
 	}
-	log.Println(fmt.Sprintf("Installer is available on %s/openshift-install", binPath))
+	log.Printf("Installer is available on %s/openshift-install\n", binPath)
 
 }
 

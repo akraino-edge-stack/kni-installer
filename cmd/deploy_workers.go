@@ -33,8 +33,7 @@ var deployWorkersCmd = &cobra.Command{
 		// retrieve config values and start fetching
 		var siteName string
 		if len(args) == 0 {
-			log.Fatal("Please specify site name as first argument")
-			os.Exit(1)
+			log.Fatalln("Please specify site name as first argument")
 		} else {
 			siteName = args[0]
 		}

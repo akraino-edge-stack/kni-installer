@@ -53,7 +53,7 @@ func NewWithName(siteName string, buildPath string) Site {
 func (s Site) DownloadSite() {
 	if s.siteRepo != "" {
 		// Clone the site repository
-		log.Println(fmt.Sprintf("Cloning the site repository from %s", s.siteRepo))
+		log.Printf("Cloning the site repository from %s\n", s.siteRepo)
 		siteLayerPath := fmt.Sprintf("%s/%s/site", s.buildPath, s.siteName)
 		os.RemoveAll(siteLayerPath)
 
@@ -67,12 +67,11 @@ func (s Site) DownloadSite() {
 			client := &getter.Client{Src: s.siteRepo, Dst: siteLayerPath, Mode: getter.ClientModeAny}
 			err := client.Get()
 			if err != nil {
-				log.Fatal(fmt.Sprintf("Error cloning site repository: %s", err))
+				log.Fatalf("Error cloning site repository: %s\n", err)
 			}
 		}
 	} else {
-		log.Fatal(fmt.Sprintf("Site repository does not exist for the site %s", s.siteName))
-		os.Exit(1)
+		log.Fatalf("Site repository does not exist for the site %s\n", s.siteName)
 	}
 
 }
@@ -87,15 +86,13 @@ func (s Site) GetProfileFromSite() (string, string, string) {
 		// parse yaml and extract base
 		yamlContent, err := ioutil.ReadFile(profileFile)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("Error reading profile file: %s", err))
-			os.Exit(1)
+			log.Fatalf("Error reading profile file: %s\n", err)
 		}
 
 		profileSettings := &map[string][]interface{}{}
 		err = yaml.Unmarshal(yamlContent, &profileSettings)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("Error parsing profile yaml file: %s", err))
-			os.Exit(1)
+			log.Fatalf("Error parsing profile yaml file: %s\n", err)
 		}
 		bases := (*profileSettings)["bases"]
 		profileRepo := fmt.Sprintf("%s", bases[0])
@@ -120,8 +117,7 @@ func (s Site) GetProfileFromSite() (string, string, string) {
 
 		return profileName, profileLayerPath, profileRef
 	} else if os.IsNotExist(err) {
-		log.Fatal(fmt.Sprintf("File %s does not exist, exiting", profileFile))
-		os.Exit(1)
+		log.Fatalf("File %s does not exist, exiting\n", profileFile)
 	}
 
 	return "", "", ""
@@ -130,14 +126,14 @@ func (s Site) GetProfileFromSite() (string, string, string) {
 // using the downloaded site content, fetches (and builds) the specified requirements,
 // and also prepares the host for running scripts for the site's profile type
 func (s Site) FetchRequirements(individualRequirements []string) {
-	log.Println(fmt.Sprintf("Downloading requirements for %s", s.siteName))
+	log.Printf("Downloading requirements for %s\n", s.siteName)
 	sitePath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
 
 	// searches for file containing the profile of the blueprint
 	profileName, profileLayerPath, _ := s.GetProfileFromSite()
 
 	profileBuildPath := fmt.Sprintf("%s/%s", sitePath, profileName)
-	log.Println(fmt.Sprintf("Downloading profile repo from %s into %s", profileLayerPath, profileBuildPath))
+	log.Printf("Downloading profile repo from %s into %s\n", profileLayerPath, profileBuildPath)
 	if strings.HasPrefix(profileLayerPath, "file://") {
 		// just do a local copy
 		var envVars []string
@@ -148,7 +144,7 @@ func (s Site) FetchRequirements(individualRequirements []string) {
 		client := &getter.Client{Src: profileLayerPath, Dst: profileBuildPath, Mode: getter.ClientModeAny}
 		err := client.Get()
 		if err != nil {
-			log.Fatal(fmt.Sprintf("Error cloning profile repository: %s", err))
+			log.Fatalf("Error cloning profile repository: %s\n", err)
 		}
 	}
 
@@ -156,8 +152,7 @@ func (s Site) FetchRequirements(individualRequirements []string) {
 	requirementsFile := fmt.Sprintf("%s/requirements.yaml", profileBuildPath)
 	file, err := os.Open(requirementsFile)
 	if err != nil {
-		log.Fatal("Error reading requirements file")
-		os.Exit(1)
+		log.Fatalln("Error reading requirements file")
 	}
 	defer file.Close()
 
@@ -189,7 +184,7 @@ func (s Site) FetchRequirements(individualRequirements []string) {
 			}
 			if !foundReq {
 				// skip this iteration
-				log.Println(fmt.Sprintf("Binary %s not found in list, skipping", binaryName))
+				log.Printf("Binary %s not found in list, skipping\n", binaryName)
 				continue
 			}
 		}
@@ -202,7 +197,6 @@ func (s Site) FetchRequirements(individualRequirements []string) {
 
 	if err != nil {
 		log.Fatal(err)
-		os.Exit(1)
 	}
 
 	// remove profile folder
@@ -221,15 +215,13 @@ func (s Site) WriteEnvFile() {
 	var configFileObj map[interface{}]interface{}
 	b, err := ioutil.ReadFile(installYaml)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Error reading site config file: %s", err))
-		os.Exit(1)
+		log.Fatalf("Error reading site config file: %s\n", err)
 	}
 
 	// parse the yaml and check for key value
 	err = yaml.Unmarshal(b, &configFileObj)
 	if err != nil {
-		log.Println(fmt.Sprintf("Error parsing manifest: %s", err))
-		os.Exit(1)
+		log.Printf("Error parsing manifest: %s\n", err)
 	}
 
 	envVars, ok := configFileObj["config"].(map[interface{}]interface{})
@@ -242,8 +234,7 @@ func (s Site) WriteEnvFile() {
 	// write a profile.env in the siteBuildPath
 	err = ioutil.WriteFile(fmt.Sprintf("%s/profile.env", siteBuildPath), []byte(envContents), 0644)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Error writing profile.env file: %s", err))
-		os.Exit(1)
+		log.Fatalf("Error writing profile.env file: %s\n", err)
 	}
 }
 
@@ -279,7 +270,7 @@ func (s Site) DownloadRepo(sitePath string, profileLayerPath string, profileRef 
 		}
 	}
 
-	log.Println(fmt.Sprintf("Downloading blueprint repo from %s", downloadRepo))
+	log.Printf("Downloading blueprint repo from %s\n", downloadRepo)
 	blueprintDir := fmt.Sprintf("%s/blueprint", sitePath)
 	os.RemoveAll(blueprintDir)
 
@@ -293,7 +284,7 @@ func (s Site) DownloadRepo(sitePath string, profileLayerPath string, profileRef 
 		client := &getter.Client{Src: downloadRepo, Dst: blueprintDir, Mode: getter.ClientModeAny}
 		err := client.Get()
 		if err != nil {
-			log.Fatal(fmt.Sprintf("Error cloning profile repository: %s", err))
+			log.Fatalf("Error cloning profile repository: %s\n", err)
 		}
 	}
 
@@ -306,8 +297,7 @@ func (s Site) DownloadRepo(sitePath string, profileLayerPath string, profileRef 
 			if info.Name() == "kustomization.yaml" {
 				readKustomization, err := ioutil.ReadFile(path)
 				if err != nil {
-					log.Fatal(fmt.Sprintf("Error opening kustomization file: %s", err))
-					os.Exit(1)
+					log.Fatalf("Error opening kustomization file: %s\n", err)
 				}
 
 				newKustomization := strings.Replace(string(readKustomization), absoluteBlueprintRepo, "../../../", -1)
@@ -317,15 +307,13 @@ func (s Site) DownloadRepo(sitePath string, profileLayerPath string, profileRef 
 
 				err = ioutil.WriteFile(path, []byte(newKustomization), 0)
 				if err != nil {
-					log.Fatal(fmt.Sprintf("Error writing modified kustomization file: %s", err))
-					os.Exit(1)
+					log.Fatalf("Error writing modified kustomization file: %s\n", err)
 				}
 				return nil
 			}
 
 		} else {
-			log.Println(fmt.Sprintf("Error walking on site directory: %s", err))
-			os.Exit(1)
+			log.Fatalf("Error walking on site directory: %s\n", err)
 		}
 
 		return nil
@@ -336,7 +324,7 @@ func (s Site) DownloadRepo(sitePath string, profileLayerPath string, profileRef 
 // host preparation finalization scripts for site automation (if any)
 func (s Site) PrepareManifests() {
 	sitePath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
-	log.Println(fmt.Sprintf("Preparing manifests for %s", s.siteName))
+	log.Printf("Preparing manifests for %s\n", s.siteName)
 
 	// do the initial validation of pre-requisites
 	utils.ValidateRequirements(s.buildPath, s.siteName)
@@ -356,8 +344,7 @@ func (s Site) PrepareManifests() {
 	err := copy.Copy(installConfigDirPath, automationPath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Error copying 00_install-config directory: %s", err))
-		os.Exit(1)
+		log.Fatalf("Error copying 00_install-config directory: %s\n", err)
 	}
 
 	// generate openshift-install manifests based on phase 00_install-config
@@ -370,20 +357,17 @@ func (s Site) PrepareManifests() {
 	if len(out) > 0 {
 		err := ioutil.WriteFile(fmt.Sprintf("%s/install-config.yaml", assetsPath), out, 0644)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("Error writing final install-config file: %s", err))
-			os.Exit(1)
+			log.Fatalf("Error writing final install-config file: %s\n", err)
 		}
 
 		// create a copy of final install-config.yaml in any site automation sub-directories
 		// in case automation is later needed
 		err = ioutil.WriteFile(fmt.Sprintf("%s/install-config.yaml", automationPath), out, 0644)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("Error writing final install-config file to automation assets directory: %s", err))
-			os.Exit(1)
+			log.Fatalf("Error writing final install-config file to automation assets directory: %s\n", err)
 		}
 	} else {
-		log.Fatal("Error, kustomize did not return any content")
-		os.Exit(1)
+		log.Fatalln("Error, kustomize did not return any content")
 	}
 
 	// now generate the manifests
@@ -392,23 +376,20 @@ func (s Site) PrepareManifests() {
 	// iterate over all the generated files and create a kustomization file
 	f, err := os.Create(fmt.Sprintf("%s/kustomization.yaml", assetsPath))
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Error creating kustomization file: %s", err))
-		os.Exit(1)
+		log.Fatalf("Error creating kustomization file: %s\n", err)
 	}
 	defer f.Close()
 
 	_, err = f.WriteString("resources:\n")
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Error writing kustomization file: %s", err))
-		os.Exit(1)
+		log.Fatalf("Error writing kustomization file: %s\n", err)
 	}
 
 	filePatterns := []string{fmt.Sprintf("%s/manifests/*.yaml", assetsPath), fmt.Sprintf("%s/manifests/*.yml", assetsPath), fmt.Sprintf("%s/openshift/*.yaml", assetsPath)}
 	for _, filePattern := range filePatterns {
 		files, err := filepath.Glob(filePattern)
 		if err != nil {
-			log.Fatal(fmt.Sprintf("Error reading manifest files: %s", err))
-			os.Exit(1)
+			log.Fatalf("Error reading manifest files: %s\n", err)
 		}
 
 		// iterate over each file, remove the absolute path and write it
@@ -416,8 +397,7 @@ func (s Site) PrepareManifests() {
 			strippedName := strings.TrimPrefix(fileName, fmt.Sprintf("%s/", assetsPath))
 			_, err := f.WriteString(fmt.Sprintf("- %s\n", strippedName))
 			if err != nil {
-				log.Fatal(fmt.Sprintf("Error writing kustomization file: %s", err))
-				os.Exit(1)
+				log.Fatalf("Error writing kustomization file: %s\n", err)
 			}
 		}
 	}
@@ -435,15 +415,13 @@ func (s Site) PrepareManifests() {
 		err = s.finalizeHostForAutomation(profileName)
 
 		if err != nil {
-			log.Fatal(err)
-			os.Exit(1)
+			log.Fatalln(err)
 		}
 
 		// Finally, print manifest merge output
 		fmt.Println(resultStr)
 	} else {
-		log.Fatal("Error, kustomize did not return any content")
-		os.Exit(1)
+		log.Fatalln("Error, kustomize did not return any content")
 	}
 
 }
@@ -455,8 +433,7 @@ func (s Site) ApplyWorkloads(kubeconfigFile string, retryCount int, delay int) {
 	// if we have kubeconfig, validate that exists
 	if len(kubeconfigFile) > 0 {
 		if _, err := os.Stat(kubeconfigFile); err != nil {
-			log.Fatal(fmt.Sprintf("Error: kubeconfig file %s does not exist", kubeconfigFile))
-			os.Exit(1)
+			log.Fatalln("Error: kubeconfig file %s does not exist\n", kubeconfigFile)
 		}
 	}
 	binariesPath := fmt.Sprintf("%s/requirements", siteBuildPath)
@@ -465,21 +442,21 @@ func (s Site) ApplyWorkloads(kubeconfigFile string, retryCount int, delay int) {
 	_, profileLayerPath, profileRef := s.GetProfileFromSite()
 	s.DownloadRepo(siteBuildPath, profileLayerPath, profileRef)
 
-	log.Println(fmt.Sprintf("Applying workloads from %s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
+	log.Printf("Applying workloads from %s/blueprint/sites/site/02_cluster-addons\n", siteBuildPath)
 	out := utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
 	if string(out) != "" {
 		// now we can apply it
 		utils.ApplyOc(fmt.Sprintf("%s/oc", binariesPath), out, kubeconfigFile, retryCount, delay)
 	} else {
-		log.Println(fmt.Sprintf("No manifests found for %s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
+		log.Printf("No manifests found for %s/blueprint/sites/site/02_cluster-addons\n", siteBuildPath)
 	}
-	log.Println(fmt.Sprintf("Applying workloads from %s/blueprint/sites/site/03_services", siteBuildPath))
+	log.Printf("Applying workloads from %s/blueprint/sites/site/03_services\n", siteBuildPath)
 	out = utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/03_services", siteBuildPath))
 	if string(out) != "" {
 		// now we can apply it
 		utils.ApplyOc(fmt.Sprintf("%s/oc", binariesPath), out, kubeconfigFile, retryCount, delay)
 	} else {
-		log.Println(fmt.Sprintf("No manifests found for %s/blueprint/sites/site/03_services", siteBuildPath))
+		log.Printf("No manifests found for %s/blueprint/sites/site/03_services\n", siteBuildPath)
 	}
 }
 
@@ -488,8 +465,7 @@ func (s Site) AutomateMastersDeployment() {
 	err := s.automateDeployment("masters")
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Site: AutomateMastersDeployment: Error attempting to run automated deployment: %s", err))
-		os.Exit(1)
+		log.Fatalf("Site: AutomateMastersDeployment: Error attempting to run automated deployment: %s\n", err)
 	}
 }
 
@@ -498,8 +474,7 @@ func (s Site) AutomateWorkersDeployment() {
 	err := s.automateDeployment("workers")
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Site: AutomateWorkersDeployment: Error attempting to run automated deployment: %s", err))
-		os.Exit(1)
+		log.Fatalf("Site: AutomateWorkersDeployment: Error attempting to run automated deployment: %s\n", err)
 	}
 }
 
@@ -508,16 +483,14 @@ func (s Site) AutomateClusterDestroy() {
 	automatedDeployment, err := s.getAutomatedDeployment()
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Site: AutomateClusterDestroy: Error attempting to acquire automated deploy object: %s", err))
-		os.Exit(1)
+		log.Fatalf("Site: AutomateClusterDestroy: Error attempting to acquire automated deploy object: %s\n", err)
 	}
 
 	// Run the automated cluster teardown
 	err = automatedDeployment.DestroyCluster()
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Site: AutomateClusterDestroy: Error attempting to run automated cluster destroy: %s", err))
-		os.Exit(1)
+		log.Fatalf("Site: AutomateClusterDestroy: Error attempting to run automated cluster destroy: %s\n", err)
 	}
 }
 

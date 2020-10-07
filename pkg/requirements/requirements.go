@@ -28,14 +28,13 @@ func New(binaryName string, sourceRepo string, buildPath string) Requirement {
 // download requirement from a tarball or folder
 func (r Requirement) FetchRequirementFolder() {
 	// extract the tarball if exists
-	log.Println(fmt.Sprintf("Pulling %s tarball from %s", r.binaryName, r.sourceRepo))
+	log.Printf("Pulling %s tarball from %s\n", r.binaryName, r.sourceRepo)
 
 	extractDir := fmt.Sprintf("%s/%s_content", r.buildPath, r.binaryName)
 	client := &getter.Client{Src: r.sourceRepo, Dst: extractDir, Mode: getter.ClientModeAny}
 	err := client.Get()
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Error cloning tarball repository: %s", err))
-		os.Exit(1)
+		log.Fatalf("Error cloning tarball repository: %s\n", err)
 	}
 
 	// find the binary inside the extracted content
@@ -59,8 +58,7 @@ func (r Requirement) BuildOpenshiftBinary() {
 	client := &getter.Client{Src: r.sourceRepo, Dst: extractDir, Mode: getter.ClientModeAny}
 	err := client.Get()
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Error cloning tarball repository: %s", err))
-		os.Exit(1)
+		log.Fatalf("Error cloning tarball repository: %s\n", err)
 	}
 
 	// build the openshift binary
@@ -70,7 +68,7 @@ func (r Requirement) BuildOpenshiftBinary() {
 	// copy the generated binary to the build directory
 	var cpEnvVars []string
 	utils.ExecuteCommand("", cpEnvVars, true, true, "cp", fmt.Sprintf("%s/bin/openshift-install", extractDir), r.buildPath)
-	log.Println(fmt.Sprintf("Installer is available on %s/openshift-install", r.buildPath))
+	log.Printf("Installer is available on %s/openshift-install\n", r.buildPath)
 }
 
 // download a requirement from a git repo and build it
@@ -78,19 +76,18 @@ func (r Requirement) FetchRequirementGit() {
 	if r.binaryName == "openshift-install" {
 		r.BuildOpenshiftBinary()
 	} else {
-		log.Fatal(fmt.Sprintf("Build of binary %s is not supported", r.binaryName))
-		os.Exit(1)
+		log.Fatalf("Build of binary %s is not supported\n", r.binaryName)
 	}
 }
 
 // downloads an individual requirement
 func (r Requirement) FetchRequirement() {
-	log.Println(fmt.Sprintf("Downloading %s requirement from %s", r.binaryName, r.sourceRepo))
+	log.Printf("Downloading %s requirement from %s\n", r.binaryName, r.sourceRepo)
 
 	// first check if the binary already exists
 	binaryPath := fmt.Sprintf("%s/%s", r.buildPath, r.binaryName)
 	if _, err := os.Stat(binaryPath); err == nil {
-		log.Println(fmt.Sprintf("Using existing %s", binaryPath))
+		log.Printf("Using existing %s\n", binaryPath)
 	} else if os.IsNotExist(err) {
 		if strings.Contains(r.sourceRepo, ".git") {
 			r.FetchRequirementGit()

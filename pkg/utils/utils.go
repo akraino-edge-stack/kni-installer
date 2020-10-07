@@ -16,13 +16,12 @@ import (
 func ValidateRequirements(buildPath string, siteName string) {
 	// check for pull-secret.json
 	if _, err := os.Stat(fmt.Sprintf("%s/pull-secret.json", buildPath)); os.IsNotExist(err) {
-		log.Fatal(fmt.Sprintf("Error, no valid pull-secret.json found in %s", buildPath))
-		os.Exit(1)
+		log.Fatalf("Error, no valid pull-secret.json found in %s\n", buildPath)
 	}
 
 	// check for ssh key , and generate if it does not exist
 	if _, err := os.Stat(fmt.Sprintf("%s/id_rsa.pub", buildPath)); os.IsNotExist(err) {
-		log.Println(fmt.Sprintf("No SSH public key (id_rsa.pub) found in %s. Generating keypair.", buildPath))
+		log.Printf("No SSH public key (id_rsa.pub) found in %s. Generating keypair.\n", buildPath)
 
 		var envVars []string
 		ExecuteCommand("", envVars, true, true, "/bin/bash", "-c", fmt.Sprintf("ssh-keygen -b 2048 -q -N '' -f %s/id_rsa -C user@example.com", buildPath))
@@ -31,8 +30,7 @@ func ValidateRequirements(buildPath string, siteName string) {
 	// check if requirements folder exist
 	requirementsFolder := fmt.Sprintf("%s/%s/requirements", buildPath, siteName)
 	if _, err := os.Stat(requirementsFolder); os.IsNotExist(err) {
-		log.Fatal(fmt.Sprintf("Error, requirements folder not found in %s", requirementsFolder))
-		os.Exit(1)
+		log.Fatalf("Error, requirements folder not found in %s\n", requirementsFolder)
 	}
 
 }
@@ -43,7 +41,6 @@ func ApplyKustomize(kustomizeBinary string, kustomizePath string) []byte {
 	ex, err := os.Executable()
 	if err != nil {
 		log.Fatal("Error retrieving the current running path")
-		os.Exit(1)
 	}
 	exPath := filepath.Dir(ex)
 
@@ -59,14 +56,12 @@ func ApplyOc(ocBinary string, kubectlContent []byte, kubeconfigPath string, retr
 	tmpFile, err := ioutil.TempFile(os.TempDir(), "kubectl-")
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Cannot create temporary file: %s", err))
-		os.Exit(1)
 	}
 	defer os.Remove(tmpFile.Name())
 
 	_, err = tmpFile.Write(kubectlContent)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Error writing kubectl file: %s", err))
-		os.Exit(1)
+		log.Fatalf("Error writing kubectl file: %s\n", err)
 	}
 
 	var envVars []string
@@ -112,10 +107,9 @@ func ExecuteCommand(directory string, envVars []string, failFatal bool, showOutp
 
 	if err != nil {
 		if failFatal {
-			log.Fatal(fmt.Sprintf("Error applying command %s (%s): %s - %s", name, arg, err, errb.String()))
-			os.Exit(1)
+			log.Fatalf("Error applying command %s (%s): %s - %s\n", name, arg, err, errb.String())
 		} else {
-			log.Println(fmt.Sprintf("Error applying command %s (%s): %s - %s", name, arg, err, errb.String()))
+			log.Printf("Error applying command %s (%s): %s - %s\n", name, arg, err, errb.String())
 		}
 	}
 	return outb.Bytes(), errb.Bytes()

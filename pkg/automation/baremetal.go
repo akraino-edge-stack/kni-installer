@@ -268,7 +268,7 @@ func (bad baremetalAutomatedDeployment) FinalizeAutomationPreparation() error {
 		if err != nil {
 			// Requirement was missing, so warn the user (in this case, automation will use
 			// the OCP binaries pulled by the call to prep_bm_host.sh below)
-			log.Printf("WARNING: '%s' requirement not specified; automation will use the default selected version for OpenShift binaries!", requirement)
+			log.Printf("WARNING: '%s' requirement not specified; automation will use the default selected version for OpenShift binaries!\n", requirement)
 			prepHostSkipOcpBinariesArg = ""
 			break
 		}
@@ -276,7 +276,7 @@ func (bad baremetalAutomatedDeployment) FinalizeAutomationPreparation() error {
 		utils.ExecuteCommand("", nil, true, false, "cp", requirementFullPath, requirementsDestination)
 	}
 
-	log.Printf("baremetalAutomatedDeployment: FinalizeAutomationPreparation: finished injecting OpenShift binaries for automation repo\n")
+	log.Println("baremetalAutomatedDeployment: FinalizeAutomationPreparation: finished injecting OpenShift binaries for automation repo")
 
 	// Execute automation's prep_bm_host script now that all manifests have been
 	// copied to the baremetal automation repo's cluster manifests directory
@@ -359,7 +359,7 @@ func (bad baremetalAutomatedDeployment) DeployMasters() error {
 		return err
 	}
 
-	log.Printf("baremetalAutomatedDeployment: DeployMasters: bootstrap and master(s) deploy initiated...\n")
+	log.Println("baremetalAutomatedDeployment: DeployMasters: bootstrap and master(s) deploy initiated...")
 
 	return nil
 }
@@ -406,7 +406,7 @@ func (bad baremetalAutomatedDeployment) runContainers(automationRepoPath string)
 		args:        []string{"start"},
 	})
 
-	log.Printf("baremetalAutomatedDeployment: runContainers: starting bastion containers...\n")
+	log.Println("baremetalAutomatedDeployment: runContainers: starting bastion containers...")
 
 	err := bad.runScripts(automationRepoPath, scripts)
 
@@ -414,7 +414,7 @@ func (bad baremetalAutomatedDeployment) runContainers(automationRepoPath string)
 		return err
 	}
 
-	log.Printf("baremetalAutomatedDeployment: runContainers: bastion containers successfully started\n")
+	log.Println("baremetalAutomatedDeployment: runContainers: bastion containers successfully started")
 
 	return nil
 }
@@ -485,7 +485,7 @@ func (bad baremetalAutomatedDeployment) runConfigGenerationScripts(automationRep
 		})
 	}
 
-	log.Printf("baremetalAutomatedDeployment: runConfigGenerationScripts: generating configuration...\n")
+	log.Println("baremetalAutomatedDeployment: runConfigGenerationScripts: generating configuration...")
 
 	err := bad.runScripts(automationRepoPath, scripts)
 
@@ -493,7 +493,7 @@ func (bad baremetalAutomatedDeployment) runConfigGenerationScripts(automationRep
 		return err
 	}
 
-	log.Printf("baremetalAutomatedDeployment: runConfigGenerationScripts: configuration successfully generated\n")
+	log.Println("baremetalAutomatedDeployment: runConfigGenerationScripts: configuration successfully generated")
 
 	return nil
 }
@@ -539,7 +539,7 @@ func (bad baremetalAutomatedDeployment) DeployWorkers() error {
 		return err
 	}
 
-	log.Printf("baremetalAutomatedDeployment: DeployWorkers: worker(s) deploy initiated...\n")
+	log.Println("baremetalAutomatedDeployment: DeployWorkers: worker(s) deploy initiated...")
 
 	return nil
 }
@@ -622,7 +622,7 @@ func (bad baremetalAutomatedDeployment) DestroyCluster() error {
 		os.RemoveAll(fmt.Sprintf("%s/%s", automationRepoPath, dir))
 	}
 
-	log.Printf("baremetalAutomatedDeployment: DestroyCluster: cluster teardown completed\n")
+	log.Println("baremetalAutomatedDeployment: DestroyCluster: cluster teardown completed")
 
 	return nil
 }
@@ -630,7 +630,7 @@ func (bad baremetalAutomatedDeployment) DestroyCluster() error {
 func (bad baremetalAutomatedDeployment) runTerraform(automationRepoPath string, targetType string, operation terraformOperation) error {
 	terraformPath := fmt.Sprintf("%s/terraform/%s", automationRepoPath, targetType)
 
-	log.Printf("baremetalAutomatedDeployment: runTerraform: initializing terraform...\n")
+	log.Println("baremetalAutomatedDeployment: runTerraform: initializing terraform...")
 
 	// Init
 	cmd := exec.Command("terraform", string(terraformInit))
@@ -644,7 +644,7 @@ func (bad baremetalAutomatedDeployment) runTerraform(automationRepoPath string, 
 		return fmt.Errorf("baremetalAutomatedDeployment: runTerraform: error running baremetal automation %s terraform init: %s", targetType, err)
 	}
 
-	log.Printf("baremetalAutomatedDeployment: runTerraform: terraform successfully initialized\n")
+	log.Println("baremetalAutomatedDeployment: runTerraform: terraform successfully initialized")
 	log.Printf("baremetalAutomatedDeployment: runTerraform: running terraform %s...\n", operation)
 
 	// Apply
@@ -659,7 +659,7 @@ func (bad baremetalAutomatedDeployment) runTerraform(automationRepoPath string, 
 		return fmt.Errorf("baremetalAutomatedDeployment: runTerraform: error running baremetal automation %s terraform %s: %s", targetType, operation, err)
 	}
 
-	log.Printf("baremetalAutomatedDeployment: runTerraform: terraform successfully applied\n")
+	log.Println("baremetalAutomatedDeployment: runTerraform: terraform successfully applied")
 
 	return nil
 }

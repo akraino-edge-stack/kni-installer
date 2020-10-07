@@ -34,8 +34,7 @@ var fetchRequirementsCmd = &cobra.Command{
 		// we need to have at least site as first argument
 		var siteRepo string
 		if len(args) == 0 {
-			log.Fatal("Please specify site repository as first argument")
-			os.Exit(1)
+			log.Fatalln("Please specify site repository as first argument")
 		} else {
 			siteRepo = args[0]
 		}
