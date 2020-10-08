@@ -288,11 +288,8 @@ func (s Site) DownloadRepo(sitePath string, profileLayerPath string, profileRef 
 		}
 	}
 
-	// and now copy site inside the sites folder, replacing the absolute references to relative
-	var envVars []string
-	utils.ExecuteCommand("", envVars, true, false, "cp", "-R", fmt.Sprintf("%s/site", sitePath), fmt.Sprintf("%s/blueprint/sites/site", sitePath))
-
-	filepath.Walk(fmt.Sprintf("%s/blueprint/sites/site", sitePath), func(path string, info os.FileInfo, err error) error {
+	siteKustomizationPath := filepath.Join(blueprintDir, "sites", s.siteName)
+	filepath.Walk(siteKustomizationPath, func(path string, info os.FileInfo, err error) error {
 		if err == nil {
 			if info.Name() == "kustomization.yaml" {
 				readKustomization, err := ioutil.ReadFile(path)
@@ -322,6 +319,7 @@ func (s Site) DownloadRepo(sitePath string, profileLayerPath string, profileRef 
 
 // using the downloaded site content, prepares the manifests for it, and also runs
 // host preparation finalization scripts for site automation (if any)
+//noinspection GoUnreachableCode
 func (s Site) PrepareManifests() {
 	sitePath := fmt.Sprintf("%s/%s", s.buildPath, s.siteName)
 	log.Printf("Preparing manifests for %s\n", s.siteName)
@@ -340,7 +338,7 @@ func (s Site) PrepareManifests() {
 	os.Mkdir(automationPath, 0755)
 
 	// copy 00_install-config directory contents into automation sub-directory
-	installConfigDirPath := fmt.Sprintf("%s/blueprint/sites/site/00_install-config", sitePath)
+	installConfigDirPath := filepath.Join(sitePath, "blueprint", "sites", s.siteName, "00_install-config")
 	err := copy.Copy(installConfigDirPath, automationPath)
 
 	if err != nil {
@@ -406,7 +404,8 @@ func (s Site) PrepareManifests() {
 	os.Rename(fmt.Sprintf("%s/generated_assets/", sitePath), fmt.Sprintf("%s/blueprint/base/00_cluster/", sitePath))
 
 	// apply kustomize on cluster-mods
-	out = utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/01_cluster-mods", sitePath))
+	clusterModDirPath := filepath.Join(sitePath, "blueprint", "sites", s.siteName, "01_cluster-mods")
+	out = utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), clusterModDirPath)
 	if len(out) > 0 {
 		// now apply modifications on the manifests
 		resultStr := manifests.MergeManifests(string(out), sitePath)
@@ -442,16 +441,18 @@ func (s Site) ApplyWorkloads(kubeconfigFile string, retryCount int, delay int) {
 	_, profileLayerPath, profileRef := s.GetProfileFromSite()
 	s.DownloadRepo(siteBuildPath, profileLayerPath, profileRef)
 
-	log.Printf("Applying workloads from %s/blueprint/sites/site/02_cluster-addons\n", siteBuildPath)
-	out := utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/02_cluster-addons", siteBuildPath))
+	kustomizeTarget := filepath.Join(s.buildPath, s.siteName, "blueprint", "sites", s.siteName, "02_cluster-addons")
+	log.Printf("Applying workloads from %s", kustomizeTarget)
+	out := utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), kustomizeTarget)
 	if string(out) != "" {
 		// now we can apply it
 		utils.ApplyOc(fmt.Sprintf("%s/oc", binariesPath), out, kubeconfigFile, retryCount, delay)
 	} else {
 		log.Printf("No manifests found for %s/blueprint/sites/site/02_cluster-addons\n", siteBuildPath)
 	}
-	log.Printf("Applying workloads from %s/blueprint/sites/site/03_services\n", siteBuildPath)
-	out = utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), fmt.Sprintf("%s/blueprint/sites/site/03_services", siteBuildPath))
+	kustomizeTarget = filepath.Join(s.buildPath, s.siteName, "blueprint", "sites", s.siteName, "03_services")
+	log.Printf("Applying workloads from %s", kustomizeTarget)
+	out = utils.ApplyKustomize(fmt.Sprintf("%s/kustomize", binariesPath), kustomizeTarget)
 	if string(out) != "" {
 		// now we can apply it
 		utils.ApplyOc(fmt.Sprintf("%s/oc", binariesPath), out, kubeconfigFile, retryCount, delay)
