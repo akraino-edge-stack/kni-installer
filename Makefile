@@ -43,12 +43,12 @@ binary:
 
 build:
 	@echo "Building knictl with $(GOPATH) to knictl.tar.gz"
-	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build -o $(GONAME) $(GOFILES)
-	tar -czvf knictl.tar.gz $(GONAME) plugins utils
+	@GOPATH=$(GOPATH) go build -o "$(GOBIN)/$(GONAME)" $(GOFILES)
+	tar -czvf "$(GOBIN)/knictl.tar.gz" "$(GOBIN)/$(GONAME)" plugins utils
 
 clean:
 	@echo "Destroying previous cluster"
-	@./bin/$(GONAME) clean --build_path $(BUILDDIR)
+	@"$(GOBIN)/$(GONAME)" clean --build_path $(BUILDDIR)
 
 dependencies:
 	@echo "Installing dependencies"
@@ -56,12 +56,12 @@ dependencies:
 
 deploy: dependencies
 	@echo "Launching cluster deployment bin/$(GONAME)"
-	@./bin/$(GONAME) generate --installer_path $(INSTALLER_PATH) --build_path $(BUILDDIR) --base_repository $(BASE_REPO) --base_path $(BASE_PATH) --secrets_repository $(CREDENTIALS) --site_repository $(SITE_REPO) --settings_path $(SETTINGS_PATH) --master_memory_mb $(MASTER_MEMORY_MB) --ssh_key_path $(SSH_KEY_PATH)
+	@"$(GOBIN)/$(GONAME)" generate --installer_path $(INSTALLER_PATH) --build_path $(BUILDDIR) --base_repository $(BASE_REPO) --base_path $(BASE_PATH) --secrets_repository $(CREDENTIALS) --site_repository $(SITE_REPO) --settings_path $(SETTINGS_PATH) --master_memory_mb $(MASTER_MEMORY_MB) --ssh_key_path $(SSH_KEY_PATH)
 	$(MAKE) workloads
 
 workloads:
-	@./bin/$(GONAME) workloads --site_repository $(SITE_REPO) --cluster_credentials $(CLUSTER_CREDENTIALS) --workload_type customizations
-	@./bin/$(GONAME) workloads --site_repository $(SITE_REPO) --cluster_credentials $(CLUSTER_CREDENTIALS) --workload_type workloads
+	@"$(GOBIN)$(GONAME)" workloads --site_repository $(SITE_REPO) --cluster_credentials $(CLUSTER_CREDENTIALS) --workload_type customizations
+	@"$(GOBIN)$(GONAME)" workloads --site_repository $(SITE_REPO) --cluster_credentials $(CLUSTER_CREDENTIALS) --workload_type workloads
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
