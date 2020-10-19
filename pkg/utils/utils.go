@@ -42,9 +42,12 @@ func ApplyKustomize(kustomizeBinary string, kustomizePath string) []byte {
 	if err != nil {
 		log.Fatal("Error retrieving the current running path")
 	}
-	exPath := filepath.Dir(ex)
-
-	envVars := []string{fmt.Sprintf("XDG_CONFIG_HOME=%s/plugins", exPath)}
+	pluginPath := filepath.Dir(ex)
+	pluginPath, err = filepath.Abs(filepath.Join(pluginPath, "../plugins"))
+	if err != nil {
+		log.Fatalf("failed get plugin path: %v", err)
+	}
+	envVars := []string{fmt.Sprintf("XDG_CONFIG_HOME=%s", pluginPath)}
 	out, _ := ExecuteCommand("", envVars, true, false, kustomizeBinary, "build", "--enable_alpha_plugins", "--reorder", "none", kustomizePath)
 
 	return out
