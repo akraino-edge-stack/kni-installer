@@ -30,12 +30,12 @@ sudo -E bash -c "yes Y | ./virsh-cleanup.sh"
 
 rm -rf $HOME/.kni/$SITE_NAME || true
 pushd $HOME/go/src/gerrit.akraino.org/kni/installer
-./knictl fetch_requirements file://${WORKSPACE}/kni-blueprint-pae/sites/$SITE_NAME
-./knictl prepare_manifests $SITE_NAME
+./bin/knictl fetch_requirements file://${WORKSPACE}/kni-blueprint-pae/sites/$SITE_NAME
+./bin/knictl prepare_manifests $SITE_NAME
 popd
 
 pushd $HOME/go/src/gerrit.akraino.org/kni/installer
-./knictl deploy_masters $SITE_NAME
+./bin/knictl deploy_masters $SITE_NAME
 
 # just sleep for some time, for masters to be up
 sleep 20m
@@ -51,7 +51,7 @@ set -e
 popd
 
 pushd $HOME/go/src/gerrit.akraino.org/kni/installer
-./knictl deploy_workers $SITE_NAME
+./bin/knictl deploy_workers $SITE_NAME
 
 # destroy bootstrap node
 virsh destroy ${UPI_NAME}-bootstrap
@@ -65,7 +65,7 @@ echo "Cluster successfully deployed! Start applying workloads"
 rm -rf $HOME/.kni/$SITE_NAME/baremetal_automation/build/openshift-patches/99-ifcfg-*.yaml
 
 pushd $HOME/go/src/gerrit.akraino.org/kni/installer
-./knictl apply_workloads $SITE_NAME --kubeconfig $HOME/.kni/$SITE_NAME/baremetal_automation/ocp/auth/kubeconfig
+./bin/knictl apply_workloads $SITE_NAME --kubeconfig $HOME/.kni/$SITE_NAME/baremetal_automation/ocp/auth/kubeconfig
 
 STATUS=$?
 popd
@@ -78,6 +78,6 @@ fi
 if [ -z "${PRESERVE_CLUSTER}" ]; then
   # now destroy the cluster
   pushd $HOME/go/src/gerrit.akraino.org/kni/installer
-  ./knictl destroy_cluster $SITE_NAME
+  ./bin/knictl destroy_cluster $SITE_NAME
   popd
 fi

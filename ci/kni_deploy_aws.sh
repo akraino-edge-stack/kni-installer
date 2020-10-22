@@ -42,8 +42,8 @@ sed -i "s#- git::https://gerrit.akraino.org/r/kni/${GIT_CHECKOUT_DIR}.git/#- fil
 
 # start the workflow
 sudo rm -rf /$HOME/.kni/${SITE_NAME} || true
-./knictl fetch_requirements file://${BLUEPRINT_PATH}/sites/${SITE_NAME} 2>&1 | tee ${WORKSPACE}/aws_requirements.log
-./knictl prepare_manifests ${SITE_NAME} 2>&1 | tee ${WORKSPACE}/aws_manifests.log
+./bin/knictl fetch_requirements file://${BLUEPRINT_PATH}/sites/${SITE_NAME} 2>&1 | tee ${WORKSPACE}/aws_requirements.log
+./bin/knictl prepare_manifests ${SITE_NAME} 2>&1 | tee ${WORKSPACE}/aws_manifests.log
 
 # now run the cluster
 source $HOME/.kni/${SITE_NAME}/profile.env
@@ -61,7 +61,7 @@ if [ $STATUS -ne 0 ]; then
 fi
 
 echo "Cluster successfully deployed! Start applying workloads"
-./knictl apply_workloads ${SITE_NAME} 2>&1 | tee ${WORKSPACE}/aws_workloads.go
+./bin/knictl apply_workloads ${SITE_NAME} 2>&1 | tee ${WORKSPACE}/aws_workloads.go
 STATUS=$?
 
 if [ $STATUS -ne 0 ]; then
