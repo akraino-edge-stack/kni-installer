@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+// limitations under the License.
 
 package cmd
 
@@ -25,7 +26,7 @@ import (
 
 // prepareManifestsCmd represents the prepare_manifests command
 var prepareManifestsCmd = &cobra.Command{
-	Use:              "prepare_manifests siteName [--build_path=<local_build_path>]",
+	Use:              "prepare_manifesrts siteName [--build_path=<local_build_path>]",
 	Short:            "Command to prepare the manifests needed for a site",
 	Long:             ``,
 	TraverseChildren: true,
