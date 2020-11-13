@@ -24,9 +24,37 @@ LANG="en_US.UTF-8"
 LC_ALL="en_US.UTF-8"
 PRESERVE_CLUSTER="${PRESERVE_CLUSTER:-true}"
 
+# Stop the VMs before the containers because the container filesystems
+# appear in the VM filesystem mounts.
 wget https://raw.githubusercontent.com/openshift/installer/master/scripts/maintenance/virsh-cleanup.sh
 chmod a+x ./virsh-cleanup.sh
 sudo -E bash -c "yes Y | ./virsh-cleanup.sh"
+
+# Stop the containers so they can be removed and their names re-used later.
+podman stop kni-dnsmasq-prov || /bin/true
+podman stop kni-dnsmasq-bm || /bin/true
+podman stop kni-haproxy || /bin/true
+podman stop kni-coredns || /bin/true
+podman stop kni-matchbox || /bin/true
+
+# Removed the stopped containers.
+podman rm kni-dnsmasq-prov || /bin/true
+podman rm kni-dnsmasq-bm || /bin/true
+podman rm kni-haproxy || /bin/true
+podman rm kni-coredns || /bin/true
+podman rm kni-matchbox || /bin/true
+
+# In case a container removal happened while a VM was still running,
+# it will no longer appear in CLI output as a container that podman
+# knows about, but the storage will remain and an entry will still be
+# present in containers.json which will prevent creating a container
+# with the same name.  This should clean up that situation, but
+# otherwise is not normally necessary.
+podman rm -f --storage kni-dnsmasq-prov || /bin/true
+podman rm -f --storage kni-dnsmasq-bm || /bin/true
+podman rm -f --storage kni-haproxy || /bin/true
+podman rm -f --storage kni-coredns || /bin/true
+podman rm -f --storage kni-matchbox || /bin/true
 
 rm -rf $HOME/.kni/$SITE_NAME || true
 pushd $HOME/go/src/gerrit.akraino.org/kni/installer
