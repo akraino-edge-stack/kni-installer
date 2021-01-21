@@ -1,0 +1,41 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+  name: system:public-info-viewer
+rules:
+- nonResourceURLs:  # /version has been removed
+  - /healthz
+  - /livez
+  - /readyz
+  verbs:
+  - get
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: default
+automountServiceAccountToken: false
+---
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: worker
+  name: 50-disable-secret-automount
+spec:
+  config:
+    ignition:
+      version: 2.2.0
+    storage:
+      files:
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,Cg==
+        filesystem: root
+        mode: 0644
+        path: /etc/containers/mounts.conf
