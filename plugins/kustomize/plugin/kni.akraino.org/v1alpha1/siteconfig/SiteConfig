@@ -16,7 +16,9 @@ set -e
 shift
 
 PULL_SECRET=$(cat ${HOME}/.kni/pull-secret.json)
+PULL_SECRET=$(echo $PULL_SECRET)
 SSH_PUB_KEY=$(cat ${HOME}/.kni/id_rsa.pub)
+SSH_PUB_KEY=$(echo $SSH_PUB_KEY)
 
 if [[ -f "$HOME/.kni/dockerconfig.json" ]]; then
     DOCKERCONFIGJSON=$(cat ${HOME}/.kni/dockerconfig.json)
