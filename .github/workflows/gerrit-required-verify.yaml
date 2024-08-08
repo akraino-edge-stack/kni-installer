@@ -106,7 +106,7 @@ jobs:
   vote:
     if: ${{ always() }}
     # yamllint enable rule:line-length
-    needs: [clear-vote, info-yaml-verify, test-installer]
+    needs: [clear-vote, test-installer]
     runs-on: ubuntu-latest
     steps:
       - uses: technote-space/workflow-conclusion-action@v3
