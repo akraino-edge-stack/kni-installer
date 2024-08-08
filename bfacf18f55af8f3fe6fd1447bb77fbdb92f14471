@@ -1,0 +1,7 @@
+Verified+1: Akraino Required-GHA <releng+akraino.required.gha@linuxfoundation.org>
+Code-Review+2: Eric Ball <eball@linuxfoundation.org>
+Submitted-by: Eric Ball <eball@linuxfoundation.org>
+Submitted-at: Thu, 08 Aug 2024 19:56:08 +0000
+Reviewed-on: https://gerrit.akraino.org/r/c/kni/installer/+/5168
+Project: kni/installer
+Branch: refs/heads/master
