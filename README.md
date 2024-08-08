@@ -168,3 +168,4 @@ After that, the site deployment can be considered as finished.
 When needed, the site can be destroyed with the openshift-install command, using the following syntax:
 
     $HOME/.kni/\$SITE_NAME/requirements/openshift-install destroy cluster --dir $HOME/.kni/\$SITE_NAME/final_manifests
+
